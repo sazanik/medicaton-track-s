@@ -1,0 +1,33 @@
+### register
+
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "firstName": "{{firstName}}",
+  "lastName": "{{lastName}}",
+  "username": "{{username}}{{$random.integer(10)}}",
+  "email": "{{username}}{{$random.integer(10)}}@gmail.com",
+  "password":"{{password}}"
+}
+
+> {%
+  client.test('Check response status', () => {
+    client.assert(response.status === 201, 'Response status is not 201');
+  })
+%}
+
+### login
+POST {{baseUrl}}/login
+Accept: application/json
+
+{
+  "email": "{{username}}{{$random.integer(10)}}@gmail.com",
+  "password":"{{password}}"
+}
+
+> {%
+  client.test('Check response status', () => {
+    client.assert(response.status === 200, 'Response status is not 200');
+  })
+%}
