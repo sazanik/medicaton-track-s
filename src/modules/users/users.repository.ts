@@ -1,31 +1,27 @@
-import { DataBaseClient, Repository, User } from '@models/index';
+import { Repository, User } from '@models/index';
 
 export default class UsersRepository extends Repository<User> {
-	constructor(dbClient: DataBaseClient, entityName: string) {
-		super(dbClient, entityName);
+	async createUser(user: User): Promise<void> {
+		await this.createOne(user);
 	}
 
-	async addUser(user: User): Promise<void> {
-		this.addOne(user);
+	async readUserById(id: string): Promise<User> {
+		return this.readOne(id);
 	}
 
-	async getUserById(id: string): Promise<User> {
-		return this.getOne(id);
-	}
-
-	async getUserByEmail(email: string): Promise<User | undefined> {
-		const users = this.getAll();
+	async readUserByEmail(email: string): Promise<User | undefined> {
+		const users = await this.readAll();
 
 		return users.find((user) => user.email === email);
 	}
 
-	async getUserByUsername(username: string): Promise<User | undefined> {
-		const users = this.getAll();
+	async readUserByUsername(username: string): Promise<User | undefined> {
+		const users = await this.readAll();
 
 		return users.find((user) => user.username === username);
 	}
 
 	async deleteUser(id: string): Promise<void> {
-		return this.deleteOne(id);
+		await this.deleteOne(id);
 	}
 }

@@ -1,11 +1,12 @@
 import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
 
 type Data = Record<string, unknown>;
 
 export interface IDataBaseClient {
-	setData: (data: Data) => void;
-	getData: () => Data;
+	setData: (data: Data) => Promise<void>;
+	getData: () => Promise<Data>;
 }
 
 export default class DataBaseClient implements IDataBaseClient {
@@ -16,38 +17,38 @@ export default class DataBaseClient implements IDataBaseClient {
 		this.initialData = initData;
 		this.dbPath = path.join(__dirname, '..', 'db.json');
 
-		this.setDefaultData();
+		this.setDefaultData().then();
 	}
 
-	private setDefaultData(): void {
+	private async setDefaultData(): Promise<void> {
 		const isDbExist = fs.existsSync(this.dbPath);
 
 		if (!isDbExist) {
-			this.setData(this.initialData);
+			await this.setData(this.initialData);
 
 			return;
 		}
 
-		const data = this.getData();
+		const data = await this.getData();
 
 		if (data) {
 			return;
 		}
 
-		this.setData(this.initialData);
+		await this.setData(this.initialData);
 	}
 
-	getData(): Data {
-		const data = fs.readFileSync(this.dbPath, 'utf-8');
+	async getData(): Promise<Data> {
+		const data = await fsp.readFile(this.dbPath, 'utf-8');
 
 		if (!data) {
-			this.setData(this.initialData);
+			await this.setData(this.initialData);
 		}
 
 		return JSON.parse(data);
 	}
 
-	setData(data: Data): void {
-		fs.writeFileSync(this.dbPath, JSON.stringify(data));
+	async setData(data: Data): Promise<void> {
+		await fsp.writeFile(this.dbPath, JSON.stringify(data));
 	}
 }

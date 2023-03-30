@@ -6,8 +6,8 @@ Content-Type: application/json
 {
   "firstName": "{{firstName}}",
   "lastName": "{{lastName}}",
-  "username": "{{username}}{{$random.integer(10)}}",
-  "email": "{{username}}{{$random.integer(10)}}@gmail.com",
+  "username": "{{username}}{{$random.integer(100)}}",
+  "email": "{{username}}{{$random.integer(100)}}@gmail.com",
   "password":"{{password}}"
 }
 

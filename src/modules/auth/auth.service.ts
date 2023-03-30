@@ -7,9 +7,9 @@ export default class AuthService {
 		this.repositories = repositories;
 	}
 
-	async register(data: IUserRegister): Promise<User> {
-		const existingUserByUsername = await this.repositories.users.getUserByUsername(data.username);
-		const existingUserByEmail = await this.repositories.users.getUserByEmail(data.email);
+	async register(data: IUserRegister): Promise<boolean> {
+		const existingUserByUsername = await this.repositories.users.readUserByUsername(data.username);
+		const existingUserByEmail = await this.repositories.users.readUserByEmail(data.email);
 
 		if (existingUserByUsername) {
 			throw ApiError.badRequest(
@@ -25,15 +25,15 @@ export default class AuthService {
 
 		const user = new User(data);
 
-		await this.repositories.users.addUser(user);
+		await this.repositories.users.createUser(user);
 
-		return user;
+		return true;
 	}
 
-	async login(data: IUserLogin): Promise<User | boolean> {
+	async login(data: IUserLogin): Promise<boolean> {
 		const promises = Promise.all([
-			await this.repositories.users.getUserByUsername(data.usernameOrEmail),
-			await this.repositories.users.getUserByEmail(data.usernameOrEmail),
+			await this.repositories.users.readUserByUsername(data.usernameOrEmail),
+			await this.repositories.users.readUserByEmail(data.usernameOrEmail),
 		]);
 
 		const existingUser = (await promises).find(Boolean);

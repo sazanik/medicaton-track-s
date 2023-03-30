@@ -5,10 +5,11 @@ interface DefaultItem {
 }
 
 interface IRepository<T> {
-	addOne: (item: T) => void;
-	getOne: (id: string) => T;
-	deleteOne: (id: string) => void;
-	getAll: () => T[];
+	createOne: (item: T) => Promise<void>;
+	readOne: (id: string) => Promise<T>;
+	updateOne: (item: T) => Promise<void>;
+	deleteOne: (id: string) => Promise<void>;
+	readAll: () => Promise<T[]>;
 }
 
 export default class Repository<T extends DefaultItem> implements IRepository<T> {
@@ -22,19 +23,27 @@ export default class Repository<T extends DefaultItem> implements IRepository<T>
 		this.entitiesRepository = new EntitiesRepository<T>(dbClient);
 	}
 
-	addOne(item: T): void {
-		this.entitiesRepository.update(this.entityName, item.id, item);
+	async createOne(item: T): Promise<void> {
+		await this.entitiesRepository.update(this.entityName, item.id, item);
 	}
 
-	getOne(id: string): T {
-		return this.entitiesRepository.read(this.entityName)[id];
+	async readOne(id: string): Promise<T> {
+		const entity = await this.entitiesRepository.read(this.entityName);
+
+		return entity[id];
 	}
 
-	deleteOne(id: string): void {
-		this.entitiesRepository.update(this.entityName, id);
+	async updateOne(item: T): Promise<void> {
+		await this.entitiesRepository.update(this.entityName, item.id, item);
 	}
 
-	getAll(): T[] {
-		return Object.values(this.entitiesRepository.read(this.entityName));
+	async deleteOne(id: string): Promise<void> {
+		await this.entitiesRepository.update(this.entityName, id);
+	}
+
+	async readAll(): Promise<T[]> {
+		const items = await this.entitiesRepository.read(this.entityName);
+
+		return Object.values(items);
 	}
 }

@@ -4,7 +4,7 @@ export interface IMedication {
 	userId: string;
 	name: string;
 	description?: string;
-	count: number;
+	currentCount: number;
 	destinationCount: number;
 }
 
@@ -13,15 +13,15 @@ export default class Medication implements IMedication {
 	userId: string;
 	name: string;
 	description: string;
-	count: number;
+	currentCount: number;
 	destinationCount: number;
 
-	constructor({ userId, name, description, count, destinationCount }: IMedication) {
+	constructor({ userId, name, description, currentCount, destinationCount }: IMedication) {
 		this.id = randomUUID();
 		this.userId = userId;
 		this.name = name;
 		this.description = description || '';
-		this.count = count;
+		this.currentCount = currentCount;
 		this.destinationCount = destinationCount;
 	}
 }
