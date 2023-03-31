@@ -1,15 +1,9 @@
-import { ApiError, IRepositories, IUserLogin, IUserRegister, User } from '@models/index';
+import { ApiError, IUserLogin, IUserRegister, Service, User } from '@models/index';
 
-export default class AuthService {
-	repositories: IRepositories;
-
-	constructor(repositories: IRepositories) {
-		this.repositories = repositories;
-	}
-
-	async register(data: IUserRegister): Promise<boolean> {
-		const existingUserByUsername = await this.repositories.users.readUserByUsername(data.username);
-		const existingUserByEmail = await this.repositories.users.readUserByEmail(data.email);
+export default class AuthService extends Service {
+	async register(data: IUserRegister): Promise<void> {
+		const existingUserByUsername = await this.repositories.users.readByUsername(data.username);
+		const existingUserByEmail = await this.repositories.users.readByEmail(data.email);
 
 		if (existingUserByUsername) {
 			throw ApiError.badRequest(
@@ -25,15 +19,13 @@ export default class AuthService {
 
 		const user = new User(data);
 
-		await this.repositories.users.createUser(user);
-
-		return true;
+		await this.repositories.users.create(user);
 	}
 
-	async login(data: IUserLogin): Promise<boolean> {
+	async login(data: IUserLogin): Promise<void> {
 		const promises = Promise.all([
-			await this.repositories.users.readUserByUsername(data.usernameOrEmail),
-			await this.repositories.users.readUserByEmail(data.usernameOrEmail),
+			await this.repositories.users.readByUsername(data.usernameOrEmail),
+			await this.repositories.users.readByEmail(data.usernameOrEmail),
 		]);
 
 		const existingUser = (await promises).find(Boolean);
@@ -47,7 +39,5 @@ export default class AuthService {
 		if (!isCorrectPassword) {
 			throw ApiError.badRequest('Incorrect email or password');
 		}
-
-		return true;
 	}
 }

@@ -2,26 +2,25 @@ import { randomUUID } from 'crypto';
 
 export interface IMedication {
 	userId: string;
-	name: string;
+	title: string;
 	description?: string;
-	currentCount: number;
 	destinationCount: number;
 }
 
 export default class Medication implements IMedication {
 	id: string;
 	userId: string;
-	name: string;
+	title: string;
 	description: string;
 	currentCount: number;
 	destinationCount: number;
 
-	constructor({ userId, name, description, currentCount, destinationCount }: IMedication) {
+	constructor({ userId, title, description, destinationCount }: IMedication) {
 		this.id = randomUUID();
 		this.userId = userId;
-		this.name = name;
+		this.title = title;
 		this.description = description || '';
-		this.currentCount = currentCount;
+		this.currentCount = 0;
 		this.destinationCount = destinationCount;
 	}
 }

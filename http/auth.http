@@ -19,7 +19,7 @@ Content-Type: application/json
 
 ### login
 POST {{baseUrl}}/login
-Accept: application/json
+Content-Type: application/json
 
 {
   "email": "{{username}}{{$random.integer(10)}}@gmail.com",

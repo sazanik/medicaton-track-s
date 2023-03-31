@@ -7,6 +7,7 @@ export { default as User, IUserRegister, IUserLogin } from './User';
 export {
 	Controller,
 	Repository,
+	Service,
 	ApiError,
 	IApiError,
 	EntitiesRepository,

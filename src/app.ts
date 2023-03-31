@@ -3,7 +3,14 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 
 import { DataBaseClient, IApiError, IRepositories, IServices } from '@models/index';
-import { UsersRepository, AuthService, AuthController } from '@modules/index';
+import {
+	AuthController,
+	AuthService,
+	MedicationsRepository,
+	MedicationsService,
+	UsersRepository,
+} from '@modules/index';
+import MedicationsController from '@modules/medications/medications.controller';
 
 dotenv.config();
 
@@ -20,15 +27,18 @@ app.use(bodyParser.json());
 
 const repositories: IRepositories = {
 	users: new UsersRepository(dbClient, 'users'),
+	medications: new MedicationsRepository(dbClient, 'medications'),
 };
 
 const services: IServices = {
 	auth: new AuthService(repositories),
+	medications: new MedicationsService(repositories),
 };
 
 const router = Router();
 
 router.use(new AuthController(services).getRouter());
+router.use(new MedicationsController(services).getRouter());
 
 app.use(router);
 

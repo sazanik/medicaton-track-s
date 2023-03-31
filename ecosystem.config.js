@@ -7,7 +7,6 @@ module.exports = {
 			watch: true,
 			ignore_watch: ['./node_modules', './src/db.json', './.idea'],
 			env: {
-				NODE_ENV: 'development',
 				PORT: 3000,
 			},
 		},

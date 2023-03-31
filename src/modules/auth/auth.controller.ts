@@ -3,11 +3,8 @@ import { NextFunction, Request, Response } from 'express';
 import { ApiError, Controller, IServices, IUserLogin, IUserRegister } from '@models/index';
 
 export default class AuthController extends Controller {
-	services: IServices;
-
 	constructor(services: IServices) {
 		super(services);
-		this.services = services;
 
 		this.register = this.register.bind(this);
 		this.login = this.login.bind(this);
@@ -26,8 +23,8 @@ export default class AuthController extends Controller {
 		}
 
 		try {
-			const user = await this.services.auth.register(req.body);
-			res.status(201).json(user);
+			await this.services.auth.register(req.body);
+			res.status(201).end(`User ${req.body.username} is successfully created`);
 		} catch (err) {
 			next(err);
 		}
