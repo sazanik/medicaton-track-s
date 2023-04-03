@@ -1,26 +1,27 @@
 import { randomUUID } from 'crypto';
 
-export interface IMedication {
+export interface IMedicationRequestBody {
 	userId: string;
 	title: string;
 	description?: string;
+	count: number;
 	destinationCount: number;
 }
 
-export default class Medication implements IMedication {
+export default class Medication {
 	id: string;
 	userId: string;
 	title: string;
 	description: string;
-	currentCount: number;
+	count: number;
 	destinationCount: number;
 
-	constructor({ userId, title, description, destinationCount }: IMedication) {
+	constructor({ userId, title, description, count, destinationCount }: IMedicationRequestBody) {
 		this.id = randomUUID();
 		this.userId = userId;
 		this.title = title;
 		this.description = description || '';
-		this.currentCount = 0;
+		this.count = count || 0;
 		this.destinationCount = destinationCount;
 	}
 }

@@ -6,7 +6,7 @@ Content-Type: application/json
   "userId": "{{userId}}",
   "title": "Medication {{$random.integer(1000)}}",
   "description": "{{$random.alphabetic(100)}}",
-  "destinationCount": "{{$random.integer(100)}}"
+  "destinationCount": {{$random.integer(100)}}
 }
 
 > {%
@@ -41,3 +41,31 @@ Accept: application/json
     }
   })
 %}
+
+### read by id
+GET {{baseUrl}}/users/{{userId}}/medications/{{medicationId}}
+Accept: application/json
+
+> {%
+  client.test('Check response status', () => {
+    client.assert(response.status === 200, 'Response status is not 200');
+  })
+
+  client.test('Check response correct data', () => {
+    const id = request.url().split('/').pop();
+
+    if (response.body) {
+      client.assert(response.body.id === id)
+    } else {
+      client.assert(response.body === null)
+    }
+  })
+%}
+
+### change count
+PUT {{baseUrl}}/users/{{userId}}/medications/{{medicationId}}
+Content-Type: application/json
+
+{
+  "count": {{$random.integer(10)}}
+}

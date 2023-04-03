@@ -1,7 +1,13 @@
-import { ApiError, IUserLogin, IUserRegister, Service, User } from '@models/index';
+import {
+	ApiError,
+	IUserLoginRequestBody,
+	IUserRegisterRequestBody,
+	Service,
+	User,
+} from '@models/index';
 
 export default class AuthService extends Service {
-	async register(data: IUserRegister): Promise<void> {
+	async register(data: IUserRegisterRequestBody): Promise<void> {
 		const existingUserByUsername = await this.repositories.users.readByUsername(data.username);
 		const existingUserByEmail = await this.repositories.users.readByEmail(data.email);
 
@@ -22,10 +28,10 @@ export default class AuthService extends Service {
 		await this.repositories.users.create(user);
 	}
 
-	async login(data: IUserLogin): Promise<void> {
+	async login(data: IUserLoginRequestBody): Promise<void> {
 		const promises = Promise.all([
-			await this.repositories.users.readByUsername(data.usernameOrEmail),
-			await this.repositories.users.readByEmail(data.usernameOrEmail),
+			this.repositories.users.readByUsername(data.usernameOrEmail),
+			this.repositories.users.readByEmail(data.usernameOrEmail),
 		]);
 
 		const existingUser = (await promises).find(Boolean);

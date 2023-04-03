@@ -1,6 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { ApiError, Controller, IServices, IUserLogin, IUserRegister } from '@models/index';
+import {
+	ApiError,
+	Controller,
+	IServices,
+	IUserLoginRequestBody,
+	IUserRegisterRequestBody,
+} from '@models/index';
 
 export default class AuthController extends Controller {
 	constructor(services: IServices) {
@@ -14,7 +20,7 @@ export default class AuthController extends Controller {
 	}
 
 	async register(
-		req: Request<{}, {}, IUserRegister>,
+		req: Request<{}, {}, IUserRegisterRequestBody>,
 		res: Response,
 		next: NextFunction,
 	): Promise<void> {
@@ -30,7 +36,11 @@ export default class AuthController extends Controller {
 		}
 	}
 
-	async login(req: Request<{}, {}, IUserLogin>, res: Response, next: NextFunction): Promise<void> {
+	async login(
+		req: Request<{}, {}, IUserLoginRequestBody>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
 		if (!Object.values(req.body).every(Boolean)) {
 			throw ApiError.badRequest('All required fields of the form must be filled');
 		}

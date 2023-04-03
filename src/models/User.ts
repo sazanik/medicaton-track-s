@@ -1,11 +1,11 @@
 import { randomUUID } from 'crypto';
 
-export interface IUserLogin {
+export interface IUserLoginRequestBody {
 	usernameOrEmail: string;
 	password: string;
 }
 
-export interface IUserRegister {
+export interface IUserRegisterRequestBody {
 	firstName: string;
 	lastName: string;
 	username: string;
@@ -13,7 +13,7 @@ export interface IUserRegister {
 	password: string;
 }
 
-export default class User implements IUserRegister {
+export default class User {
 	id: string;
 	firstName: string;
 	lastName: string;
@@ -22,7 +22,7 @@ export default class User implements IUserRegister {
 	password: string;
 	medicationsIds: string[];
 
-	constructor({ firstName, lastName, username, email, password }: IUserRegister) {
+	constructor({ firstName, lastName, username, email, password }: IUserRegisterRequestBody) {
 		this.id = randomUUID();
 		this.firstName = firstName;
 		this.lastName = lastName;

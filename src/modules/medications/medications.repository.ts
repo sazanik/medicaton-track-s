@@ -15,7 +15,7 @@ export default class MedicationsRepository extends Repository<Medication> {
 		return medications.find((m) => m.title === title);
 	}
 
-	async readByUserId(userId: string): Promise<Medication[]> {
+	async readCollByUserId(userId: string): Promise<Medication[]> {
 		const medications = await this.readAll();
 
 		return medications.filter((m) => m.userId === userId);

@@ -1,7 +1,7 @@
-import { ApiError, IMedication, Medication, Service } from '@models/index';
+import { ApiError, IMedicationRequestBody, Medication, Service } from '@models/index';
 
 export default class MedicationsService extends Service {
-	async create(data: IMedication): Promise<void> {
+	async create(data: IMedicationRequestBody): Promise<void> {
 		const existingMedication = await this.repositories.medications.readByName(data.title);
 
 		const existingUser = await this.repositories.users.readById(data.userId);
@@ -25,7 +25,30 @@ export default class MedicationsService extends Service {
 		await this.repositories.medications.create(medication);
 	}
 
+	async read(userId: string, id: string): Promise<Medication> {
+		const [user, medication] = await Promise.all([
+			this.repositories.users.readById(userId),
+			this.repositories.medications.readById(id),
+		]);
+
+		if (!(user && medication) || userId !== user.id || id !== medication.id) {
+			throw ApiError.notFound(`Medication not found, check requests params`);
+		}
+
+		return medication;
+	}
+
 	async readAll(userId: string): Promise<Medication[]> {
-		return this.repositories.medications.readByUserId(userId);
+		return this.repositories.medications.readCollByUserId(userId);
+	}
+
+	async update(id: string, medicationData: IMedicationRequestBody): Promise<void> {
+		const existingMedication = await this.repositories.medications.readById(id);
+
+		if (!existingMedication) {
+			throw ApiError.notFound(`Medication not found, check requests params`);
+		}
+
+		await this.repositories.medications.update({ ...existingMedication, ...medicationData });
 	}
 }

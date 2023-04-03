@@ -3,7 +3,6 @@ export interface IApiError extends Error {
 	message: string;
 	stack?: string;
 	statusCode?: number;
-	errors?: string[];
 }
 
 const defaultValues = {
@@ -16,14 +15,19 @@ export default class ApiError implements IApiError {
 	message: string;
 	stack?: string;
 	statusCode?: number;
-	errors?: string[];
 
-	constructor({ name, message, stack, statusCode, errors }: IApiError = defaultValues) {
+	// TODO: figure out with default prop
+	constructor({ name, message, stack, statusCode }: IApiError = defaultValues) {
 		this.name = name;
 		this.message = message;
-		this.stack = stack;
-		this.statusCode = statusCode;
-		this.errors = errors;
+
+		if (stack !== undefined) {
+			this.stack = stack;
+		}
+
+		if (statusCode !== undefined) {
+			this.statusCode = statusCode;
+		}
 	}
 
 	static badRequest(message: string): ApiError {
