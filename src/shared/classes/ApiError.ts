@@ -1,8 +1,11 @@
+import { ValidationError } from 'express-validator';
+
 export interface IApiError extends Error {
 	name: string;
 	message: string;
 	stack?: string;
 	statusCode?: number;
+	validationErrors?: ValidationError[];
 }
 
 const defaultValues = {
@@ -15,9 +18,10 @@ export default class ApiError implements IApiError {
 	message: string;
 	stack?: string;
 	statusCode?: number;
+	validationErrors?: ValidationError[];
 
 	// TODO: figure out with default prop
-	constructor({ name, message, stack, statusCode }: IApiError = defaultValues) {
+	constructor({ name, message, stack, statusCode, validationErrors }: IApiError = defaultValues) {
 		this.name = name;
 		this.message = message;
 
@@ -28,10 +32,14 @@ export default class ApiError implements IApiError {
 		if (statusCode !== undefined) {
 			this.statusCode = statusCode;
 		}
+
+		if (validationErrors !== undefined) {
+			this.validationErrors = validationErrors;
+		}
 	}
 
-	static badRequest(message: string): ApiError {
-		return new ApiError({ message, name: 'Bad Request', statusCode: 400 });
+	static badRequest(message: string, validationErrors?: ValidationError[]): ApiError {
+		return new ApiError({ message, name: 'Bad Request', statusCode: 400, validationErrors });
 	}
 
 	static unauthorized(message: string): ApiError {

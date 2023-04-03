@@ -1,3 +1,3 @@
-export { AuthService, AuthController } from './auth';
-export { MedicationsService, MedicationsRepository } from './medications';
-export { UsersRepository } from './users';
+export * from './auth';
+export * from './medications';
+export * from './users';

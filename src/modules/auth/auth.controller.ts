@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { validationResult } from 'express-validator';
 
 import {
 	ApiError,
@@ -7,6 +8,7 @@ import {
 	IUserLoginRequestBody,
 	IUserRegisterRequestBody,
 } from '@models/index';
+import { loginValidator, registerValidator } from '@validators';
 
 export default class AuthController extends Controller {
 	constructor(services: IServices) {
@@ -15,8 +17,8 @@ export default class AuthController extends Controller {
 		this.register = this.register.bind(this);
 		this.login = this.login.bind(this);
 
-		this.router.post('/register', this.register);
-		this.router.post('/login', this.login);
+		this.router.post('/register', registerValidator, this.register);
+		this.router.post('/login', loginValidator, this.login);
 	}
 
 	async register(
@@ -24,11 +26,13 @@ export default class AuthController extends Controller {
 		res: Response,
 		next: NextFunction,
 	): Promise<void> {
-		if (!Object.values(req.body).every(Boolean)) {
-			throw ApiError.badRequest('All required fields of the form must be filled');
-		}
-
 		try {
+			const errors = validationResult(req);
+
+			if (!errors.isEmpty()) {
+				next(ApiError.badRequest('Check the correctness entered data', errors.array()));
+			}
+
 			await this.services.auth.register(req.body);
 			res.status(201).end(`User ${req.body.username} is successfully created`);
 		} catch (err) {
