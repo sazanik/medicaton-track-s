@@ -6,7 +6,7 @@ import {
 	Controller,
 	IMedicationRequestBody,
 	IServices,
-	MedicationRequestBodyKeys,
+	MedicationKeys,
 } from '@models/index';
 import { getMedicationValidatorsObject, getValidators } from '@validators';
 
@@ -24,40 +24,32 @@ export default class MedicationsController extends Controller {
 			'/users/:userId/medications',
 			getValidators(
 				getMedicationValidatorsObject(body),
-				MedicationRequestBodyKeys.userId,
-				MedicationRequestBodyKeys.title,
-				MedicationRequestBodyKeys.description,
-				MedicationRequestBodyKeys.destinationCount,
+				MedicationKeys.userId,
+				MedicationKeys.title,
+				MedicationKeys.description,
+				MedicationKeys.destinationCount,
 			),
 			this.create,
 		);
 		this.router.get(
 			'/users/:userId/medications/:id',
-			getValidators(
-				getMedicationValidatorsObject(param),
-				MedicationRequestBodyKeys.userId,
-				MedicationRequestBodyKeys.id,
-			),
+			getValidators(getMedicationValidatorsObject(param), MedicationKeys.userId, MedicationKeys.id),
 			this.read,
 		);
 		this.router.get(
 			'/users/:userId/medications',
-			getValidators(getMedicationValidatorsObject(param), MedicationRequestBodyKeys.userId),
+			getValidators(getMedicationValidatorsObject(param), MedicationKeys.userId),
 			this.readAll,
 		);
 		this.router.put(
 			'/users/:userId/medications/:id',
-			getValidators(
-				getMedicationValidatorsObject(param),
-				MedicationRequestBodyKeys.userId,
-				MedicationRequestBodyKeys.id,
-			),
-			getValidators(getMedicationValidatorsObject(body), MedicationRequestBodyKeys.count),
+			getValidators(getMedicationValidatorsObject(param), MedicationKeys.userId, MedicationKeys.id),
+			getValidators(getMedicationValidatorsObject(body), MedicationKeys.count),
 			this.updateCount,
 		);
 		this.router.delete(
 			'/users/:userId/medications/:id',
-			getValidators(getMedicationValidatorsObject(param), MedicationRequestBodyKeys.id),
+			getValidators(getMedicationValidatorsObject(param), MedicationKeys.id),
 			this.delete,
 		);
 	}
@@ -131,8 +123,8 @@ export default class MedicationsController extends Controller {
 				next(ApiError.badRequest('Incorrect request params or body', errors.array()));
 			}
 
-			await this.services.medications.update(req.params.id, req.body);
-			res.status(204).end();
+			const medication = await this.services.medications.update(req.params.id, req.body);
+			res.status(200).json(medication);
 		} catch (err) {
 			next(err);
 		}

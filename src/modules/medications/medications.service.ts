@@ -42,14 +42,14 @@ export default class MedicationsService extends Service {
 		return this.repositories.medications.readCollByUserId(userId);
 	}
 
-	async update(id: string, medicationData: IMedicationRequestBody): Promise<void> {
+	async update(id: string, medicationData: IMedicationRequestBody): Promise<Medication> {
 		const existingMedication = await this.repositories.medications.readById(id);
 
 		if (!existingMedication) {
 			throw ApiError.notFound(`Medication not found, check requests params`);
 		}
 
-		await this.repositories.medications.update({ ...existingMedication, ...medicationData });
+		return this.repositories.medications.update({ ...existingMedication, ...medicationData });
 	}
 
 	async delete(userId: string, medicationId: string): Promise<void> {

@@ -5,7 +5,8 @@ type EntityData<T> = Record<string, T>;
 export interface IEntitiesRepository<T> {
 	create: (name: string) => Promise<void>;
 	read: (name: string) => Promise<EntityData<T>>;
-	update: (name: string, id: string, item?: T) => Promise<void>;
+	update: (name: string, id: string, item: T) => Promise<T>;
+	deleteItem: (name: string, id: string) => Promise<void>;
 	delete: (name: string) => Promise<void>;
 	getAllNames: () => Promise<string[]>;
 }
@@ -31,16 +32,9 @@ export default class EntitiesRepository<T> implements IEntitiesRepository<T> {
 		return data[name] as Promise<EntityData<T>>;
 	}
 
-	async update(name: string, id: string, item?: T): Promise<void> {
+	async update(name: string, id: string, item: T): Promise<T> {
 		const data = await this.dbClient.getData();
 		const entityData = data[name] as EntityData<T>;
-
-		if (!item) {
-			delete entityData[id];
-			await this.dbClient.setData(data);
-
-			return;
-		}
 
 		const newData = {
 			...data,
@@ -54,13 +48,22 @@ export default class EntitiesRepository<T> implements IEntitiesRepository<T> {
 		};
 
 		await this.dbClient.setData(newData);
+
+		return item;
+	}
+
+	async deleteItem(name: string, id: string): Promise<void> {
+		const data = await this.dbClient.getData();
+		const entityData = data[name] as EntityData<T>;
+
+		delete entityData[id];
+		await this.dbClient.setData(data);
 	}
 
 	async delete(name: string): Promise<void> {
 		const data = await this.dbClient.getData();
 
 		delete data[name];
-
 		await this.dbClient.setData(data);
 	}
 

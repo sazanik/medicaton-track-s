@@ -10,6 +10,8 @@ import {
 	MedicationsService,
 	MedicationsController,
 	UsersRepository,
+	UsersService,
+	UsersController,
 } from '@modules/index';
 
 dotenv.config();
@@ -33,12 +35,14 @@ const repositories: IRepositories = {
 const services: IServices = {
 	auth: new AuthService(repositories),
 	medications: new MedicationsService(repositories),
+	users: new UsersService(repositories),
 };
 
 const router = Router();
 
 router.use(new AuthController(services).getRouter());
 router.use(new MedicationsController(services).getRouter());
+router.use(new UsersController(services).getRouter());
 
 app.use(router);
 

@@ -29,7 +29,7 @@ Accept: application/json
     client.assert(Array.isArray(response.body), 'Response data is incorrect')
   })
 
-  client.test('Check response correct data', () => {
+  client.test('Check correct response data', () => {
     if (response.body.length) {
       const urlParts = request.url().split('/');
       urlParts.pop();
@@ -51,14 +51,9 @@ Accept: application/json
     client.assert(response.status === 200, 'Response status is not 200');
   })
 
-  client.test('Check response correct data', () => {
+  client.test('Check correct response data', () => {
     const id = request.url().split('/').pop();
-
-    if (response.body) {
-      client.assert(response.body.id === id)
-    } else {
-      client.assert(response.body === null)
-    }
+    client.assert(response.body.id === id)
   })
 %}
 
@@ -70,6 +65,28 @@ Content-Type: application/json
   "count": {{$random.integer(10)}}
 }
 
+> {%
+  client.test('Check response status', () => {
+    client.assert(response.status === 200, 'Response status is not 200');
+  })
+
+  client.test('Check correct response data', () => {
+    const id = request.url().split('/').pop();
+    client.assert(response.body.id === id)
+  })
+%}
+
 ### delete
 DELETE {{baseUrl}}/users/{{userId}}/medications/{{medicationId}}
 Accept: application/json
+
+> {%
+  client.test('Check response status', () => {
+    client.assert(response.status === 200, 'Response status is not 200');
+  })
+
+  client.test('Check correct response data', () => {
+    const id = request.url().split('/').pop();
+    client.assert(response.body.id === id)
+  })
+%}

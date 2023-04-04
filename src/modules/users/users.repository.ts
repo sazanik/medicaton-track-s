@@ -1,8 +1,8 @@
 import { Repository, User } from '@models/index';
 
 export default class UsersRepository extends Repository<User> {
-	async create(user: User): Promise<void> {
-		await this.createOne(user);
+	async create(user: User): Promise<User> {
+		return this.createOne(user);
 	}
 
 	async readById(id: string): Promise<User> {

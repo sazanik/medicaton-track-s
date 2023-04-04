@@ -1,31 +1,9 @@
-import {
-	ApiError,
-	IUserLoginRequestBody,
-	IUserRegisterRequestBody,
-	Service,
-	User,
-} from '@models/index';
+import { ApiError, IUserLoginRequestBody, IUserRegisterRequestBody, Service } from '@models/index';
 
 export default class AuthService extends Service {
 	async register(data: IUserRegisterRequestBody): Promise<void> {
-		const existingUserByUsername = await this.repositories.users.readByUsername(data.username);
-		const existingUserByEmail = await this.repositories.users.readByEmail(data.email);
-
-		if (existingUserByUsername) {
-			throw ApiError.badRequest(
-				`User with username ${existingUserByUsername.username} already exists`,
-			);
-		}
-
-		if (existingUserByEmail) {
-			throw ApiError.badRequest(`User with email ${existingUserByEmail.email} already exists`);
-		}
-
 		// TODO: realize token logic authentication
-
-		const user = new User(data);
-
-		await this.repositories.users.create(user);
+		console.log(data);
 	}
 
 	async login(data: IUserLoginRequestBody): Promise<void> {

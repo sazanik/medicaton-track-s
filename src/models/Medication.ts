@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 
-export enum MedicationRequestBodyKeys {
+export enum MedicationKeys {
 	id = 'id',
 	userId = 'userId',
 	title = 'title',
@@ -10,11 +10,11 @@ export enum MedicationRequestBodyKeys {
 }
 
 export interface IMedicationRequestBody {
-	[MedicationRequestBodyKeys.userId]: string;
-	[MedicationRequestBodyKeys.title]: string;
-	[MedicationRequestBodyKeys.description]?: string;
-	[MedicationRequestBodyKeys.count]: number;
-	[MedicationRequestBodyKeys.destinationCount]: number;
+	[MedicationKeys.userId]: string;
+	[MedicationKeys.title]: string;
+	[MedicationKeys.description]?: string;
+	[MedicationKeys.count]: number;
+	[MedicationKeys.destinationCount]: number;
 }
 
 export default class Medication {

@@ -1,25 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 
-import {
-	ApiError,
-	Controller,
-	IServices,
-	IUserLoginRequestBody,
-	IUserRegisterRequestBody,
-	UserKeys,
-} from '@models/index';
+import { ApiError, Controller, IServices, IUserRegisterRequestBody, UserKeys } from '@models/index';
 import { getUsersValidatorsObject, getValidators } from '@validators';
+import { param } from 'express-validator/src/middlewares/validation-chain-builders';
 
-export default class AuthController extends Controller {
+export default class UsersController extends Controller {
 	constructor(services: IServices) {
 		super(services);
 
-		this.register = this.register.bind(this);
-		this.login = this.login.bind(this);
+		this.create = this.create.bind(this);
+		this.delete = this.delete.bind(this);
 
 		this.router.post(
-			'/register',
+			'/users',
 			getValidators(
 				getUsersValidatorsObject(body),
 				UserKeys.email,
@@ -28,16 +22,16 @@ export default class AuthController extends Controller {
 				UserKeys.lastName,
 				UserKeys.password,
 			),
-			this.register,
+			this.create,
 		);
-		this.router.post(
-			'/login',
-			getValidators(getUsersValidatorsObject(body), UserKeys.usernameOrEmail, UserKeys.password),
-			this.login,
+		this.router.delete(
+			'/users/:id',
+			getValidators(getUsersValidatorsObject(param), UserKeys.id),
+			this.delete,
 		);
 	}
 
-	async register(
+	async create(
 		req: Request<{}, {}, IUserRegisterRequestBody>,
 		res: Response,
 		next: NextFunction,
@@ -50,28 +44,22 @@ export default class AuthController extends Controller {
 			}
 
 			const user = await this.services.users.create(req.body);
-
-			await this.services.auth.register(req.body);
 			res.status(201).json(user);
 		} catch (err) {
 			next(err);
 		}
 	}
 
-	async login(
-		req: Request<{}, {}, IUserLoginRequestBody>,
-		res: Response,
-		next: NextFunction,
-	): Promise<void> {
+	async delete(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const errors = validationResult(req);
 
 			if (!errors.isEmpty()) {
-				next(ApiError.badRequest('Check the correctness entered data', errors.array()));
+				next(ApiError.badRequest('Incorrect request params', errors.array()));
 			}
 
-			await this.services.auth.login(req.body);
-			res.status(200).end('You are successfully authorized');
+			await this.services.users.delete(req.params.id);
+			res.status(204).end();
 		} catch (err) {
 			next(err);
 		}

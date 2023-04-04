@@ -5,9 +5,9 @@ interface DefaultItem {
 }
 
 interface IRepository<T> {
-	createOne: (item: T) => Promise<void>;
+	createOne: (item: T) => Promise<T>;
 	readOne: (id: string) => Promise<T>;
-	updateOne: (item: T) => Promise<void>;
+	updateOne: (item: T) => Promise<T | void>;
 	deleteOne: (id: string) => Promise<void>;
 	readAll: () => Promise<T[]>;
 }
@@ -23,8 +23,8 @@ export default class Repository<T extends DefaultItem> implements IRepository<T>
 		this.entitiesRepository = new EntitiesRepository<T>(dbClient);
 	}
 
-	async createOne(item: T): Promise<void> {
-		await this.entitiesRepository.update(this.entityName, item.id, item);
+	async createOne(item: T): Promise<T> {
+		return this.entitiesRepository.update(this.entityName, item.id, item);
 	}
 
 	async readOne(id: string): Promise<T> {
@@ -33,12 +33,12 @@ export default class Repository<T extends DefaultItem> implements IRepository<T>
 		return entity[id];
 	}
 
-	async updateOne(item: T): Promise<void> {
-		await this.entitiesRepository.update(this.entityName, item.id, item);
+	async updateOne(item: T): Promise<T> {
+		return this.entitiesRepository.update(this.entityName, item.id, item);
 	}
 
 	async deleteOne(id: string): Promise<void> {
-		await this.entitiesRepository.update(this.entityName, id);
+		await this.entitiesRepository.deleteItem(this.entityName, id);
 	}
 
 	async readAll(): Promise<T[]> {

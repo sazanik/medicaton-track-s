@@ -21,8 +21,8 @@ export default class MedicationsRepository extends Repository<Medication> {
 		return medications.filter((m) => m.userId === userId);
 	}
 
-	async update(medication: Medication): Promise<void> {
-		await this.updateOne(medication);
+	async update(medication: Medication): Promise<Medication> {
+		return this.updateOne(medication);
 	}
 
 	async delete(id: string): Promise<void> {

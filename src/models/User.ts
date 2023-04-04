@@ -1,29 +1,26 @@
 import { randomUUID } from 'crypto';
 
-export enum UserLoginRequestBodyKeys {
+export enum UserKeys {
+	id = 'id',
+	email = 'email',
+	username = 'username',
 	usernameOrEmail = 'usernameOrEmail',
 	password = 'password',
+	firstName = 'firstName',
+	lastName = 'lastName',
 }
 
 export interface IUserLoginRequestBody {
-	[UserLoginRequestBodyKeys.usernameOrEmail]: string;
-	[UserLoginRequestBodyKeys.password]: string;
-}
-
-export enum UserRegisterRequestBodyKeys {
-	firstName = 'firstName',
-	lastName = 'lastName',
-	username = 'username',
-	email = 'email',
-	password = 'password',
+	[UserKeys.usernameOrEmail]: string;
+	[UserKeys.password]: string;
 }
 
 export interface IUserRegisterRequestBody {
-	[UserRegisterRequestBodyKeys.firstName]: string;
-	[UserRegisterRequestBodyKeys.lastName]: string;
-	[UserRegisterRequestBodyKeys.username]: string;
-	[UserRegisterRequestBodyKeys.email]: string;
-	[UserRegisterRequestBodyKeys.password]: string;
+	[UserKeys.firstName]: string;
+	[UserKeys.lastName]: string;
+	[UserKeys.username]: string;
+	[UserKeys.email]: string;
+	[UserKeys.password]: string;
 }
 
 export default class User {
