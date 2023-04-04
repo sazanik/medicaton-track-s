@@ -25,13 +25,13 @@ export default class MedicationsService extends Service {
 		await this.repositories.medications.create(medication);
 	}
 
-	async read(userId: string, id: string): Promise<Medication> {
+	async read(userId: string, medicationId: string): Promise<Medication> {
 		const [user, medication] = await Promise.all([
 			this.repositories.users.readById(userId),
-			this.repositories.medications.readById(id),
+			this.repositories.medications.readById(medicationId),
 		]);
 
-		if (!(user && medication) || userId !== user.id || id !== medication.id) {
+		if (!(user && medication) || userId !== user.id || medicationId !== medication.id) {
 			throw ApiError.notFound(`Medication not found, check requests params`);
 		}
 
@@ -50,5 +50,22 @@ export default class MedicationsService extends Service {
 		}
 
 		await this.repositories.medications.update({ ...existingMedication, ...medicationData });
+	}
+
+	async delete(userId: string, medicationId: string): Promise<void> {
+		const [user, medication] = await Promise.all([
+			this.repositories.users.readById(userId),
+			this.repositories.medications.readById(medicationId),
+		]);
+
+		if (!(user && medication) || userId !== user.id || medicationId !== medication.id) {
+			throw ApiError.notFound(`Medication not found, check requests params`);
+		}
+
+		await this.repositories.medications.delete(medicationId);
+		await this.repositories.users.update({
+			...user,
+			medicationsIds: user.medicationsIds.filter((id) => id !== medicationId),
+		});
 	}
 }

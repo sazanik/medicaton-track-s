@@ -9,7 +9,6 @@ import {
 	MedicationRequestBodyKeys,
 } from '@models/index';
 import { getMedicationValidatorsObject, getValidators } from '@validators';
-import * as console from 'console';
 
 export default class MedicationsController extends Controller {
 	constructor(services: IServices) {
@@ -19,6 +18,7 @@ export default class MedicationsController extends Controller {
 		this.read = this.read.bind(this);
 		this.readAll = this.readAll.bind(this);
 		this.updateCount = this.updateCount.bind(this);
+		this.delete = this.delete.bind(this);
 
 		this.router.post(
 			'/users/:userId/medications',
@@ -55,6 +55,11 @@ export default class MedicationsController extends Controller {
 			getValidators(getMedicationValidatorsObject(body), MedicationRequestBodyKeys.count),
 			this.updateCount,
 		);
+		this.router.delete(
+			'/users/:userId/medications/:id',
+			getValidators(getMedicationValidatorsObject(param), MedicationRequestBodyKeys.id),
+			this.delete,
+		);
 	}
 
 	async create(
@@ -84,7 +89,7 @@ export default class MedicationsController extends Controller {
 		const errors = validationResult(req);
 
 		if (!errors.isEmpty()) {
-			next(ApiError.badRequest('Incorrect request data', errors.array()));
+			next(ApiError.badRequest('Incorrect request params', errors.array()));
 		}
 
 		try {
@@ -101,6 +106,12 @@ export default class MedicationsController extends Controller {
 		next: NextFunction,
 	): Promise<void> {
 		try {
+			const errors = validationResult(req);
+
+			if (!errors.isEmpty()) {
+				next(ApiError.badRequest('Incorrect request params', errors.array()));
+			}
+
 			const medications = await this.services.medications.readAll(req.params.userId);
 			res.status(200).json(medications);
 		} catch (err) {
@@ -114,7 +125,32 @@ export default class MedicationsController extends Controller {
 		next: NextFunction,
 	): Promise<void> {
 		try {
+			const errors = validationResult(req);
+
+			if (!errors.isEmpty()) {
+				next(ApiError.badRequest('Incorrect request params or body', errors.array()));
+			}
+
 			await this.services.medications.update(req.params.id, req.body);
+			res.status(204).end();
+		} catch (err) {
+			next(err);
+		}
+	}
+
+	async delete(
+		req: Request<{ userId: string; id: string }>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const errors = validationResult(req);
+
+			if (!errors.isEmpty()) {
+				next(ApiError.badRequest('Incorrect request params', errors.array()));
+			}
+
+			await this.services.medications.delete(req.params.userId, req.params.id);
 			res.status(204).end();
 		} catch (err) {
 			next(err);

@@ -37,6 +37,9 @@ export default class EntitiesRepository<T> implements IEntitiesRepository<T> {
 
 		if (!item) {
 			delete entityData[id];
+			await this.dbClient.setData(data);
+
+			return;
 		}
 
 		const newData = {

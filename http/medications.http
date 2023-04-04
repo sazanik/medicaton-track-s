@@ -62,10 +62,14 @@ Accept: application/json
   })
 %}
 
-### change count
+### update count
 PUT {{baseUrl}}/users/{{userId}}/medications/{{medicationId}}
 Content-Type: application/json
 
 {
   "count": {{$random.integer(10)}}
 }
+
+### delete
+DELETE {{baseUrl}}/users/{{userId}}/medications/{{medicationId}}
+Accept: application/json
