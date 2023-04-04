@@ -1,15 +1,21 @@
+export { default as ApiError, IApiError } from './ApiError';
+export { default as Controller } from './Controller';
 export { IDataBase } from './DataBase';
 export { default as DataBaseClient, IDataBaseClient } from './DataBaseClient';
-export { default as Medication, IMedicationRequestBody } from './Medication';
-export { IRepositories } from './Repositories';
-export { IServices } from './Services';
-export { default as User, IUserRegisterRequestBody, IUserLoginRequestBody } from './User';
+export { default as EntitiesRepository, IEntitiesRepository } from './EntitiesRepository';
 export {
-	Controller,
-	Repository,
-	Service,
-	ApiError,
-	IApiError,
-	EntitiesRepository,
-	IEntitiesRepository,
-} from '@shared/classes';
+	default as Medication,
+	IMedicationRequestBody,
+	MedicationRequestBodyKeys,
+} from './Medication';
+export { IRepositories } from './Repositories';
+export { default as Repository } from './Repository';
+export { default as Service } from './Service';
+export { IServices } from './Services';
+export {
+	default as User,
+	IUserRegisterRequestBody,
+	IUserLoginRequestBody,
+	UserLoginRequestBodyKeys,
+	UserRegisterRequestBodyKeys,
+} from './User';

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { validationResult } from 'express-validator';
+import { body, validationResult } from 'express-validator';
 
 import {
 	ApiError,
@@ -7,8 +7,10 @@ import {
 	IServices,
 	IUserLoginRequestBody,
 	IUserRegisterRequestBody,
+	UserLoginRequestBodyKeys,
+	UserRegisterRequestBodyKeys,
 } from '@models/index';
-import { loginValidator, registerValidator } from '@validators';
+import { getAuthValidatorsObject, getValidators } from '@validators';
 
 export default class AuthController extends Controller {
 	constructor(services: IServices) {
@@ -17,8 +19,27 @@ export default class AuthController extends Controller {
 		this.register = this.register.bind(this);
 		this.login = this.login.bind(this);
 
-		this.router.post('/register', registerValidator, this.register);
-		this.router.post('/login', loginValidator, this.login);
+		this.router.post(
+			'/register',
+			getValidators(
+				getAuthValidatorsObject(body),
+				UserRegisterRequestBodyKeys.email,
+				UserRegisterRequestBodyKeys.username,
+				UserRegisterRequestBodyKeys.firstName,
+				UserRegisterRequestBodyKeys.lastName,
+				UserRegisterRequestBodyKeys.password,
+			),
+			this.register,
+		);
+		this.router.post(
+			'/login',
+			getValidators(
+				getAuthValidatorsObject(body),
+				UserLoginRequestBodyKeys.usernameOrEmail,
+				UserLoginRequestBodyKeys.password,
+			),
+			this.login,
+		);
 	}
 
 	async register(

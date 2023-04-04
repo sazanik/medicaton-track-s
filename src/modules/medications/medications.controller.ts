@@ -1,6 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
+import { body, param, validationResult } from 'express-validator';
 
-import { ApiError, Controller, IMedicationRequestBody, IServices } from '@models/index';
+import {
+	ApiError,
+	Controller,
+	IMedicationRequestBody,
+	IServices,
+	MedicationRequestBodyKeys,
+} from '@models/index';
+import { getMedicationValidatorsObject, getValidators } from '@validators';
+import * as console from 'console';
 
 export default class MedicationsController extends Controller {
 	constructor(services: IServices) {
@@ -9,12 +18,43 @@ export default class MedicationsController extends Controller {
 		this.create = this.create.bind(this);
 		this.read = this.read.bind(this);
 		this.readAll = this.readAll.bind(this);
-		this.changeCount = this.changeCount.bind(this);
+		this.updateCount = this.updateCount.bind(this);
 
-		this.router.post('/users/:userId/medications', this.create);
-		this.router.get('/users/:userId/medications/:id', this.read);
-		this.router.get('/users/:userId/medications', this.readAll);
-		this.router.put('/users/:userId/medications/:id', this.changeCount);
+		this.router.post(
+			'/users/:userId/medications',
+			getValidators(
+				getMedicationValidatorsObject(body),
+				MedicationRequestBodyKeys.userId,
+				MedicationRequestBodyKeys.title,
+				MedicationRequestBodyKeys.description,
+				MedicationRequestBodyKeys.destinationCount,
+			),
+			this.create,
+		);
+		this.router.get(
+			'/users/:userId/medications/:id',
+			getValidators(
+				getMedicationValidatorsObject(param),
+				MedicationRequestBodyKeys.userId,
+				MedicationRequestBodyKeys.id,
+			),
+			this.read,
+		);
+		this.router.get(
+			'/users/:userId/medications',
+			getValidators(getMedicationValidatorsObject(param), MedicationRequestBodyKeys.userId),
+			this.readAll,
+		);
+		this.router.put(
+			'/users/:userId/medications/:id',
+			getValidators(
+				getMedicationValidatorsObject(param),
+				MedicationRequestBodyKeys.userId,
+				MedicationRequestBodyKeys.id,
+			),
+			getValidators(getMedicationValidatorsObject(body), MedicationRequestBodyKeys.count),
+			this.updateCount,
+		);
 	}
 
 	async create(
@@ -22,11 +62,13 @@ export default class MedicationsController extends Controller {
 		res: Response,
 		next: NextFunction,
 	): Promise<void> {
-		if (!Object.values(req.body).every(Boolean)) {
-			throw ApiError.badRequest('All required fields of the form must be filled');
-		}
-
 		try {
+			const errors = validationResult(req);
+
+			if (!errors.isEmpty()) {
+				next(ApiError.badRequest('Check the correctness entered data', errors.array()));
+			}
+
 			await this.services.medications.create(req.body);
 			res.status(201).end(`Medication ${req.body.title} is successfully created`);
 		} catch (err) {
@@ -39,6 +81,12 @@ export default class MedicationsController extends Controller {
 		res: Response,
 		next: NextFunction,
 	): Promise<void> {
+		const errors = validationResult(req);
+
+		if (!errors.isEmpty()) {
+			next(ApiError.badRequest('Incorrect request data', errors.array()));
+		}
+
 		try {
 			const medication = await this.services.medications.read(req.params.userId, req.params.id);
 			res.status(200).json(medication);
@@ -60,7 +108,7 @@ export default class MedicationsController extends Controller {
 		}
 	}
 
-	async changeCount(
+	async updateCount(
 		req: Request<{ userId: string; id: string }, {}, IMedicationRequestBody>,
 		res: Response,
 		next: NextFunction,
