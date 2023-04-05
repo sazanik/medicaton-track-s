@@ -64,6 +64,7 @@ export default class MedicationsController extends Controller {
 
 			if (!errors.isEmpty()) {
 				next(ApiError.badRequest('Check the correctness entered data', errors.array()));
+				return;
 			}
 
 			await this.services.medications.create(req.body);
@@ -78,14 +79,16 @@ export default class MedicationsController extends Controller {
 		res: Response,
 		next: NextFunction,
 	): Promise<void> {
-		const errors = validationResult(req);
-
-		if (!errors.isEmpty()) {
-			next(ApiError.badRequest('Incorrect request params', errors.array()));
-		}
-
 		try {
+			const errors = validationResult(req);
+
+			if (!errors.isEmpty()) {
+				next(ApiError.badRequest('Incorrect request params', errors.array()));
+				return;
+			}
+
 			const medication = await this.services.medications.read(req.params.userId, req.params.id);
+
 			res.status(200).json(medication);
 		} catch (err) {
 			next(err);
@@ -102,9 +105,11 @@ export default class MedicationsController extends Controller {
 
 			if (!errors.isEmpty()) {
 				next(ApiError.badRequest('Incorrect request params', errors.array()));
+				return;
 			}
 
 			const medications = await this.services.medications.readAll(req.params.userId);
+
 			res.status(200).json(medications);
 		} catch (err) {
 			next(err);
@@ -124,6 +129,7 @@ export default class MedicationsController extends Controller {
 			}
 
 			const medication = await this.services.medications.update(req.params.id, req.body);
+
 			res.status(200).json(medication);
 		} catch (err) {
 			next(err);
@@ -140,6 +146,7 @@ export default class MedicationsController extends Controller {
 
 			if (!errors.isEmpty()) {
 				next(ApiError.badRequest('Incorrect request params', errors.array()));
+				return;
 			}
 
 			await this.services.medications.delete(req.params.userId, req.params.id);

@@ -1,9 +1,8 @@
 import { UserKeys } from '@models/User';
-import { ValidatorsObjectType, ValidationType } from './types';
-import { MedicationKeys } from '@models/Medication';
+import { ValidationType, ValidatorsObjectType } from './types';
 
 export const getUsersValidatorsObject = (validation: ValidationType): ValidatorsObjectType => ({
-	[UserKeys.id]: validation(MedicationKeys.id).isUUID(4),
+	[UserKeys.id]: validation(UserKeys.id).isUUID(4),
 	[UserKeys.email]: validation(UserKeys.email).isEmail(),
 	[UserKeys.firstName]: validation(UserKeys.firstName).isString().isLength({
 		min: 2,
@@ -28,4 +27,8 @@ export const getUsersValidatorsObject = (validation: ValidationType): Validators
 		min: 2,
 		max: 50,
 	}),
+	[UserKeys.authorization]: validation(UserKeys.authorization)
+		.matches(/^Bearer/)
+		.isString()
+		.isLength({ min: 64, max: 2 ** 64 }),
 });

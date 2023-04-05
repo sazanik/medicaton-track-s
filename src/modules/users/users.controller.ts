@@ -1,9 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import { body, validationResult } from 'express-validator';
+import { body, validationResult, param } from 'express-validator';
 
 import { ApiError, Controller, IServices, IUserRegisterRequestBody, UserKeys } from '@models/index';
 import { getUsersValidatorsObject, getValidators } from '@validators';
-import { param } from 'express-validator/src/middlewares/validation-chain-builders';
 
 export default class UsersController extends Controller {
 	constructor(services: IServices) {
@@ -41,9 +40,11 @@ export default class UsersController extends Controller {
 
 			if (!errors.isEmpty()) {
 				next(ApiError.badRequest('Check the correctness entered data', errors.array()));
+				return;
 			}
 
 			const user = await this.services.users.create(req.body);
+
 			res.status(201).json(user);
 		} catch (err) {
 			next(err);
@@ -56,6 +57,7 @@ export default class UsersController extends Controller {
 
 			if (!errors.isEmpty()) {
 				next(ApiError.badRequest('Incorrect request params', errors.array()));
+				return;
 			}
 
 			await this.services.users.delete(req.params.id);

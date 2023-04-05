@@ -8,6 +8,7 @@ export enum UserKeys {
 	password = 'password',
 	firstName = 'firstName',
 	lastName = 'lastName',
+	authorization = 'authorization',
 }
 
 export interface IUserLoginRequestBody {

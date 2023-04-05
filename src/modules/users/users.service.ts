@@ -1,3 +1,5 @@
+import { hash } from 'bcrypt';
+
 import { ApiError, IUserRegisterRequestBody, Service, User } from '@models/index';
 
 export default class UsersService extends Service {
@@ -15,7 +17,8 @@ export default class UsersService extends Service {
 			throw ApiError.badRequest(`User with email ${existingUserByEmail.email} already exists`);
 		}
 
-		const user = new User(data);
+		const hashPassword = await hash(data.password, 10);
+		const user = new User({ ...data, password: hashPassword });
 
 		return this.repositories.users.create(user);
 	}

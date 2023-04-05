@@ -10,10 +10,10 @@ export interface IDataBaseClient {
 }
 
 export default class DataBaseClient implements IDataBaseClient {
-	private readonly initialData: Record<string, unknown>;
+	private readonly initialData: Data;
 	private readonly dbPath: string;
 
-	constructor(initData = {}) {
+	constructor(initData: Data) {
 		this.initialData = initData;
 		this.dbPath = path.join(__dirname, '..', 'db.json');
 
@@ -45,7 +45,9 @@ export default class DataBaseClient implements IDataBaseClient {
 			await this.setData(this.initialData);
 		}
 
-		return JSON.parse(data);
+		const initializedData = await fsp.readFile(this.dbPath, 'utf-8');
+
+		return JSON.parse(initializedData);
 	}
 
 	async setData(data: Data): Promise<void> {

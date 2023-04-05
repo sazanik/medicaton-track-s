@@ -6,9 +6,6 @@ module.exports = {
 			args: './src/app.ts',
 			watch: true,
 			ignore_watch: ['./node_modules', './src/db.json', './.idea'],
-			env: {
-				PORT: 3000,
-			},
 		},
 	],
 };
