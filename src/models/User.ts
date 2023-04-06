@@ -9,11 +9,15 @@ export enum UserKeys {
 	firstName = 'firstName',
 	lastName = 'lastName',
 	authorization = 'authorization',
+	deviceId = 'deviceId',
+	browserId = 'browserId',
 }
 
 export interface IUserLoginRequestBody {
 	[UserKeys.usernameOrEmail]: string;
 	[UserKeys.password]: string;
+	[UserKeys.deviceId]: string;
+	[UserKeys.browserId]: string;
 }
 
 export interface IUserRegisterRequestBody {
@@ -22,6 +26,8 @@ export interface IUserRegisterRequestBody {
 	[UserKeys.username]: string;
 	[UserKeys.email]: string;
 	[UserKeys.password]: string;
+	[UserKeys.deviceId]: string;
+	[UserKeys.browserId]: string;
 }
 
 export default class User {

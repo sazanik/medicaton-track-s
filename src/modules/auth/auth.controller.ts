@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { body, validationResult } from 'express-validator';
+import { body, header, validationResult } from 'express-validator';
 
 import {
 	ApiError,
@@ -15,12 +15,10 @@ export default class AuthController extends Controller {
 	constructor(services: IServices) {
 		super(services);
 
-		this.verifyTokenMiddleware = this.verifyTokenMiddleware.bind(this);
 		this.register = this.register.bind(this);
-		this.getLoginForm = this.getLoginForm.bind(this);
 		this.login = this.login.bind(this);
-
-		this.router.use(this.verifyTokenMiddleware);
+		this.refreshToken = this.refreshToken.bind(this);
+		this.verifyAccessTokenMiddleware = this.verifyAccessTokenMiddleware.bind(this);
 
 		this.router.post(
 			'/register',
@@ -35,39 +33,40 @@ export default class AuthController extends Controller {
 			this.register,
 		);
 
-		this.router.get('/login', this.getLoginForm);
-
 		this.router.post(
 			'/login',
 			getValidators(getUsersValidatorsObject(body), UserKeys.usernameOrEmail, UserKeys.password),
 			this.login,
 		);
+
+		this.router.get(
+			'/refresh-token',
+			getValidators(getUsersValidatorsObject(header), UserKeys.authorization),
+			this.refreshToken,
+		);
+
+		this.router.use(
+			getValidators(getUsersValidatorsObject(header), UserKeys.authorization),
+			this.verifyAccessTokenMiddleware,
+		);
 	}
 
-	async verifyTokenMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
+	async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			if (/login|register|logout/.test(req.url)) {
-				next();
-				return;
-			}
-
+			const errors = validationResult(req);
 			const token = req.headers.authorization?.split(' ').pop();
 
-			if (!token) {
-				next(ApiError.unauthorized('Token expired or not found, authentication again'));
-				// res.redirect('/login');
-
+			if (!token || !errors.isEmpty()) {
+				next(ApiError.unauthorized('Token is invalid, authenticate again'));
 				return;
 			}
 
-			const data = await this.services.auth.checkAndGenerateNewToken(token);
+			const tokenPayload = await this.services.auth.verifyToken(token, true);
+			const tokens = await this.services.auth.generateTokens(tokenPayload);
 
-			console.log(data);
-
-			next();
+			res.status(200).json(tokens);
 		} catch (err) {
-			next(ApiError.unauthorized('Token expired or not found, authentication again'));
-			// res.redirect('/login'); TODO
+			next(err);
 		}
 	}
 
@@ -85,17 +84,9 @@ export default class AuthController extends Controller {
 			}
 
 			const user = await this.services.users.create(req.body);
-			const data = await this.services.auth.register(user);
+			const data = await this.services.auth.register({ ...req.body, userId: user.id });
 
 			res.status(201).json(data);
-		} catch (err) {
-			next(err);
-		}
-	}
-
-	async getLoginForm(req: Request, res: Response, next: NextFunction): Promise<void> {
-		try {
-			res.status(200).send('<h1>Login form</h1>');
 		} catch (err) {
 			next(err);
 		}
@@ -117,6 +108,28 @@ export default class AuthController extends Controller {
 			const data = await this.services.auth.login(req.body);
 
 			res.status(200).json(data);
+		} catch (err) {
+			next(err);
+		}
+	}
+
+	async verifyAccessTokenMiddleware(
+		req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		try {
+			const errors = validationResult(req);
+			const token = req.headers.authorization?.split(' ').pop();
+
+			if (!token || !errors.isEmpty()) {
+				next(ApiError.unauthorized('Token is invalid, authenticate again'));
+				return;
+			}
+
+			await this.services.auth.verifyToken(token);
+
+			next();
 		} catch (err) {
 			next(err);
 		}

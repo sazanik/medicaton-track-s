@@ -50,7 +50,7 @@ export default class ApiError implements IApiError {
 		return new ApiError({ message, name: 'Not Found', statusCode: 404 });
 	}
 
-	static internalServerError(message: string): ApiError {
+	static internalServerError(message = 'Please try submitting a request later'): ApiError {
 		return new ApiError({ message, name: 'Internal Server Error', statusCode: 500 });
 	}
 

@@ -2,37 +2,47 @@ import { IDataBaseClient } from '@models/index';
 
 type EntityData<T> = Record<string, T>;
 
-export interface IEntitiesRepository<T> {
-	create: (name: string) => Promise<void>;
-	read: (name: string) => Promise<EntityData<T>>;
-	update: (name: string, id: string, item: T) => Promise<T>;
-	deleteItem: (name: string, id: string) => Promise<void>;
-	delete: (name: string) => Promise<void>;
-	getAllNames: () => Promise<string[]>;
+interface Item {
+	id: string;
 }
 
-export default class EntitiesRepository<T> implements IEntitiesRepository<T> {
+export interface IEntitiesRepository<T> {
+	createEntity: (name: string, items?: T[]) => Promise<void>;
+	readEntity: (name: string) => Promise<EntityData<T>>;
+	updateItem: (name: string, id: string, item: T) => Promise<T>;
+	deleteItem: (name: string, id: string) => Promise<void>;
+	deleteEntity: (name: string) => Promise<void>;
+	getAllEntitiesNames: () => Promise<string[]>;
+}
+
+export default class EntitiesRepository<T extends Item> implements IEntitiesRepository<T> {
 	dbClient: IDataBaseClient;
 
 	constructor(dbClient: IDataBaseClient) {
 		this.dbClient = dbClient;
 	}
 
-	async create(name: string): Promise<void> {
+	async createEntity(name: string, items?: T[]): Promise<void> {
 		const data = await this.dbClient.getData();
 
 		data[name] = {};
 
+		if (items?.length) {
+			items.forEach((item) => {
+				(data[name] as EntityData<T>)[item.id] = item;
+			});
+		}
+
 		await this.dbClient.setData(data);
 	}
 
-	async read(name: string): Promise<EntityData<T>> {
+	async readEntity(name: string): Promise<EntityData<T>> {
 		const data = await this.dbClient.getData();
 
 		return data[name] as Promise<EntityData<T>>;
 	}
 
-	async update(name: string, id: string, item: T): Promise<T> {
+	async updateItem(name: string, id: string, item: T): Promise<T> {
 		const data = await this.dbClient.getData();
 		const entityData = data[name] as EntityData<T>;
 
@@ -60,14 +70,14 @@ export default class EntitiesRepository<T> implements IEntitiesRepository<T> {
 		await this.dbClient.setData(data);
 	}
 
-	async delete(name: string): Promise<void> {
+	async deleteEntity(name: string): Promise<void> {
 		const data = await this.dbClient.getData();
 
 		delete data[name];
 		await this.dbClient.setData(data);
 	}
 
-	async getAllNames(): Promise<string[]> {
+	async getAllEntitiesNames(): Promise<string[]> {
 		return Object.keys(await this.dbClient.getData());
 	}
 }

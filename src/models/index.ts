@@ -1,4 +1,5 @@
 export { default as ApiError, IApiError } from './ApiError';
+export { default as Token, TokenKeys } from './Token';
 export { default as Controller } from './Controller';
 export { IDataBase } from './DataBase';
 export { default as DataBaseClient, IDataBaseClient } from './DataBaseClient';

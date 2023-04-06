@@ -8,7 +8,9 @@ Content-Type: application/json
   "lastName": "{{lastName}}",
   "username": "{{username}}{{$random.integer(100)}}",
   "email": "{{username}}{{$random.integer(100)}}@gmail.com",
-  "password":"{{password}}"
+  "password": "{{password}}",
+  "browserId": "{{browserId}}",
+  "deviceId": "{{deviceId}}"
 }
 
 > {%
@@ -16,17 +18,19 @@ Content-Type: application/json
     client.assert(response.status === 201, 'Response status is not 201');
   })
 
-  client.global.set("token", response.body.token);
+  client.global.set("accessToken", response.body.accessToken);
+  client.global.set("refreshToken", response.body.refreshToken)
 %}
-
 
 ### login
 POST {{baseUrl}}/login
 Content-Type: application/json
 
 {
-  "usernameOrEmail": "{{username}}50",
-  "password":"{{password}}"
+  "usernameOrEmail": "{{username}}88",
+  "password":"{{password}}",
+  "browserId": "{{browserId}}",
+  "deviceId": "{{deviceId}}"
 }
 
 > {%
@@ -34,11 +38,26 @@ Content-Type: application/json
     client.assert(response.status === 200, 'Response status is not 200');
   })
 
-  client.global.set("token", response.body.token);
+  client.global.set("accessToken", response.body.accessToken);
+  client.global.set("refreshToken", response.body.refreshToken);
+  client.log(client.global.get('refreshToken'));
+%}
+
+### refresh
+GET {{baseUrl}}/refresh-token
+Authorization: Bearer {{refreshToken}}
+Content-Type: application/json
+
+> {%
+
+  client.global.set("accessToken", response.body.accessToken);
+  client.global.set("refreshToken", response.body.refreshToken)
+  client.log(client.global.get('refreshToken'));
 %}
 
 ### read users
 GET {{baseUrl}}/users
-Authorization: Bearer {{token}}
+Authorization: Bearer {{accessToken}}
 
-###
+
+

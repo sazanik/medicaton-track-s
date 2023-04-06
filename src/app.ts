@@ -9,6 +9,7 @@ import {
 	MedicationsController,
 	MedicationsRepository,
 	MedicationsService,
+	TokensRepository,
 	UsersController,
 	UsersRepository,
 	UsersService,
@@ -18,7 +19,7 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT;
-const dbClient = new DataBaseClient({ users: {}, medications: {} });
+const dbClient = new DataBaseClient({ users: {}, medications: {}, tokens: {} });
 
 app.listen(port, () => {
 	console.log(`App started on port ${port}`);
@@ -30,6 +31,7 @@ app.use(bodyParser.json());
 const repositories: IRepositories = {
 	users: new UsersRepository(dbClient, 'users'),
 	medications: new MedicationsRepository(dbClient, 'medications'),
+	tokens: new TokensRepository(dbClient, 'tokens'),
 };
 
 const services: IServices = {
@@ -41,12 +43,10 @@ const services: IServices = {
 const router = Router();
 
 router.use(new AuthController(services).getRouter());
-router.use(new MedicationsController(services).getRouter());
 router.use(new UsersController(services).getRouter());
+router.use(new MedicationsController(services).getRouter());
 
 app.use(router);
-
 app.use('*', (err: IApiError, _req: Request, res: Response, _next: NextFunction) => {
-	console.log('ERRORS', err);
-	res.status(err.statusCode || 500).send(err);
+	res.status(err.statusCode || 500).json(err);
 });

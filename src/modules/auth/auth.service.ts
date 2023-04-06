@@ -1,22 +1,121 @@
 import { compareSync } from 'bcrypt';
-import { sign, verify } from 'jsonwebtoken';
+import { decode, JsonWebTokenError, JwtPayload, sign, verify } from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-import { ApiError, IUserLoginRequestBody, Service, User } from '@models/index';
-import { IResponseData } from './types';
+import {
+	ApiError,
+	IUserLoginRequestBody,
+	IUserRegisterRequestBody,
+	Service,
+	Token,
+} from '@models/index';
+import { IResponseData, ITokens, Payload } from './types';
 
-const secretKey = process.env.JWT_ACCESS_SECRET_KEY || 'dev-secret-key';
+dotenv.config();
+
+const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || 'access-secret';
+const accessTokenLifetime = process.env.ACCESS_TOKEN_LIFETIME || 60 * 60;
+
+const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || 'refresh-secret';
+const refreshTokenLifetime = process.env.REFRESH_TOKEN_LIFETIME || 60 * 60 * 24;
 
 export default class AuthService extends Service {
-	async register(user: User): Promise<IResponseData> {
-		const token = sign({ id: user.id }, secretKey, { expiresIn: '10s' });
+	async generateTokens(payload: Payload): Promise<ITokens> {
+		const accessTokenId = sign(payload, accessTokenSecret, {
+			expiresIn: accessTokenLifetime + 's',
+		});
 
-		return { token, firstName: user.firstName, lastName: user.lastName };
+		const refreshTokenId = sign(payload, refreshTokenSecret, {
+			expiresIn: refreshTokenLifetime + 's',
+		});
+
+		const {
+			userId,
+			deviceId,
+			browserId,
+			exp: accessExp,
+		} = decode(accessTokenId) as Token & { exp: number };
+		const { exp: refreshExp } = decode(refreshTokenId) as Token & { exp: number };
+
+		const accessToken = new Token({
+			id: accessTokenId,
+			userId,
+			browserId,
+			deviceId,
+			type: 'access',
+			expiresIn: accessExp || Math.round(Date.now() / 1000) + Number(accessTokenLifetime),
+		});
+
+		const refreshToken = new Token({
+			id: refreshTokenId,
+			userId,
+			browserId,
+			deviceId,
+			type: 'refresh',
+			expiresIn: refreshExp || Math.round(Date.now() / 1000) + Number(refreshTokenLifetime),
+		});
+
+		return {
+			accessToken: (await this.repositories.tokens.create(accessToken)).id,
+			refreshToken: (await this.repositories.tokens.create(refreshToken)).id,
+		};
 	}
 
-	async login(data: IUserLoginRequestBody): Promise<IResponseData> {
+	async verifyToken(token: string, isTypeRefresh = false): Promise<Omit<Token, 'id'>> {
+		try {
+			const {
+				userId,
+				browserId,
+				deviceId,
+				exp: expiresIn = 0,
+			} = verify(token, isTypeRefresh ? refreshTokenSecret : accessTokenSecret) as JwtPayload &
+				Payload;
+
+			await this.repositories.users.readOne(userId);
+
+			return {
+				userId,
+				browserId,
+				deviceId,
+				type: isTypeRefresh ? 'refresh' : 'access',
+				expiresIn,
+			};
+		} catch (err: unknown) {
+			if (err instanceof JsonWebTokenError) {
+				throw ApiError.unauthorized(err.message);
+			}
+
+			if (err instanceof Error) {
+				throw new ApiError(err);
+			}
+
+			throw ApiError.unexpectedError();
+		}
+	}
+
+	async register({
+		userId,
+		firstName,
+		lastName,
+		browserId,
+		deviceId,
+	}: IUserRegisterRequestBody & {
+		userId: string;
+	}): Promise<IResponseData> {
+		const tokens = await this.generateTokens({ userId, browserId, deviceId });
+
+		return { firstName, lastName, ...tokens };
+	}
+
+	async login({
+		password,
+		usernameOrEmail,
+		deviceId,
+		browserId,
+	}: IUserLoginRequestBody): Promise<IResponseData> {
 		const promises = Promise.all([
-			this.repositories.users.readByUsername(data.usernameOrEmail),
-			this.repositories.users.readByEmail(data.usernameOrEmail),
+			this.repositories.users.readByUsername(usernameOrEmail),
+			this.repositories.users.readByEmail(usernameOrEmail),
 		]);
 
 		const existingUser = (await promises).find(Boolean);
@@ -25,29 +124,14 @@ export default class AuthService extends Service {
 			throw ApiError.badRequest('Incorrect email or password');
 		}
 
-		const isCorrectPassword = compareSync(data.password, existingUser.password);
+		const isCorrectPassword = compareSync(password, existingUser.password);
 
 		if (!isCorrectPassword) {
 			throw ApiError.badRequest('Incorrect email or password');
 		}
 
-		const token = sign({ id: existingUser.id }, secretKey, { expiresIn: '10s' });
+		const tokens = await this.generateTokens({ userId: existingUser.id, deviceId, browserId });
 
-		return { token, firstName: existingUser.firstName, lastName: existingUser.lastName };
-	}
-
-	async checkAndGenerateNewToken(token: string): Promise<IResponseData> {
-		let user;
-		const jwtData = verify(token, secretKey);
-
-		if (typeof jwtData === 'object') {
-			user = await this.repositories.users.readById(jwtData.id);
-		} else {
-			user = await this.repositories.users.readById(jwtData);
-		}
-
-		const newToken = sign({ id: user.id }, secretKey, { expiresIn: '10s' });
-
-		return { token: newToken, firstName: user.firstName, lastName: user.lastName };
+		return { firstName: existingUser.firstName, lastName: existingUser.lastName, ...tokens };
 	}
 }
