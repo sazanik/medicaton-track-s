@@ -42,8 +42,8 @@ export default class ApiError implements IApiError {
 		return new ApiError({ message, name: 'Bad Request', statusCode: 400, validationErrors });
 	}
 
-	static unauthorized(message: string): ApiError {
-		return new ApiError({ message, name: 'Unauthorized', statusCode: 401 });
+	static unauthorized(message: string, validationErrors?: ValidationError[]): ApiError {
+		return new ApiError({ message, name: 'Unauthorized', statusCode: 401, validationErrors });
 	}
 
 	static notFound(message: string): ApiError {

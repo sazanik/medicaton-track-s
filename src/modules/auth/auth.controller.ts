@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { body, validationResult, header } from 'express-validator';
+import { body, validationResult } from 'express-validator';
 
 import {
 	ApiError,
@@ -15,15 +15,12 @@ export default class AuthController extends Controller {
 	constructor(services: IServices) {
 		super(services);
 
+		this.verifyTokenMiddleware = this.verifyTokenMiddleware.bind(this);
 		this.register = this.register.bind(this);
+		this.getLoginForm = this.getLoginForm.bind(this);
 		this.login = this.login.bind(this);
-		this.autologin = this.autologin.bind(this);
 
-		this.router.get(
-			'/',
-			getValidators(getUsersValidatorsObject(header), UserKeys.authorization),
-			this.autologin,
-		);
+		this.router.use(this.verifyTokenMiddleware);
 
 		this.router.post(
 			'/register',
@@ -37,11 +34,41 @@ export default class AuthController extends Controller {
 			),
 			this.register,
 		);
+
+		this.router.get('/login', this.getLoginForm);
+
 		this.router.post(
 			'/login',
 			getValidators(getUsersValidatorsObject(body), UserKeys.usernameOrEmail, UserKeys.password),
 			this.login,
 		);
+	}
+
+	async verifyTokenMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			if (/login|register|logout/.test(req.url)) {
+				next();
+				return;
+			}
+
+			const token = req.headers.authorization?.split(' ').pop();
+
+			if (!token) {
+				next(ApiError.unauthorized('Token expired or not found, authentication again'));
+				// res.redirect('/login');
+
+				return;
+			}
+
+			const data = await this.services.auth.checkAndGenerateNewToken(token);
+
+			console.log(data);
+
+			next();
+		} catch (err) {
+			next(ApiError.unauthorized('Token expired or not found, authentication again'));
+			// res.redirect('/login'); TODO
+		}
 	}
 
 	async register(
@@ -66,6 +93,14 @@ export default class AuthController extends Controller {
 		}
 	}
 
+	async getLoginForm(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			res.status(200).send('<h1>Login form</h1>');
+		} catch (err) {
+			next(err);
+		}
+	}
+
 	async login(
 		req: Request<{}, {}, IUserLoginRequestBody>,
 		res: Response,
@@ -80,30 +115,6 @@ export default class AuthController extends Controller {
 			}
 
 			const data = await this.services.auth.login(req.body);
-
-			res.status(200).json(data);
-		} catch (err) {
-			next(err);
-		}
-	}
-
-	async autologin(req: Request, res: Response, next: NextFunction): Promise<void> {
-		try {
-			const errors = validationResult(req);
-
-			if (!errors.isEmpty()) {
-				next(ApiError.badRequest('Authorization data is missing or incorrect', errors.array()));
-				return;
-			}
-
-			const token = req.headers.authorization?.split(' ').pop();
-
-			if (!token) {
-				next(ApiError.unauthorized('Token expired or not found, authentication again'));
-				return;
-			}
-
-			const data = await this.services.auth.autologin(token);
 
 			res.status(200).json(data);
 		} catch (err) {

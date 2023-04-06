@@ -37,8 +37,8 @@ Content-Type: application/json
   client.global.set("token", response.body.token);
 %}
 
-### login by token
-GET {{baseUrl}}
+### read users
+GET {{baseUrl}}/users
 Authorization: Bearer {{token}}
 
 ###

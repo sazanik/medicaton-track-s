@@ -23,6 +23,10 @@ export default class UsersService extends Service {
 		return this.repositories.users.create(user);
 	}
 
+	async readAll(): Promise<User[]> {
+		return this.repositories.users.readAll();
+	}
+
 	async delete(id: string): Promise<void> {
 		const existingUser = await this.repositories.users.readById(id);
 

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { body, validationResult, param } from 'express-validator';
+import { body, param, validationResult } from 'express-validator';
 
 import { ApiError, Controller, IServices, IUserRegisterRequestBody, UserKeys } from '@models/index';
 import { getUsersValidatorsObject, getValidators } from '@validators';
@@ -9,6 +9,7 @@ export default class UsersController extends Controller {
 		super(services);
 
 		this.create = this.create.bind(this);
+		this.readAll = this.readAll.bind(this);
 		this.delete = this.delete.bind(this);
 
 		this.router.post(
@@ -23,6 +24,9 @@ export default class UsersController extends Controller {
 			),
 			this.create,
 		);
+
+		this.router.get('/users', this.readAll);
+
 		this.router.delete(
 			'/users/:id',
 			getValidators(getUsersValidatorsObject(param), UserKeys.id),
@@ -46,6 +50,16 @@ export default class UsersController extends Controller {
 			const user = await this.services.users.create(req.body);
 
 			res.status(201).json(user);
+		} catch (err) {
+			next(err);
+		}
+	}
+
+	async readAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const users = await this.services.users.readAll();
+
+			res.status(200).json(users);
 		} catch (err) {
 			next(err);
 		}

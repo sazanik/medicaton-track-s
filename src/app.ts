@@ -6,12 +6,12 @@ import { DataBaseClient, IApiError, IRepositories, IServices } from '@models/ind
 import {
 	AuthController,
 	AuthService,
+	MedicationsController,
 	MedicationsRepository,
 	MedicationsService,
-	MedicationsController,
+	UsersController,
 	UsersRepository,
 	UsersService,
-	UsersController,
 } from '@modules/index';
 
 dotenv.config();
