@@ -1,39 +1,121 @@
-import { ApiError, IRepositories, IUserLogin, IUserRegister, User } from '@models/index';
+import { compareSync } from 'bcrypt';
+import { decode, JsonWebTokenError, JwtPayload, sign, verify } from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-export default class AuthService {
-	repositories: IRepositories;
+import {
+	ApiError,
+	IUserLoginRequestBody,
+	IUserRegisterRequestBody,
+	Service,
+	Token,
+} from '@models/index';
+import { IResponseData, ITokens, Payload } from './types';
 
-	constructor(repositories: IRepositories) {
-		this.repositories = repositories;
+dotenv.config();
+
+const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || 'access-secret';
+const accessTokenLifetime = process.env.ACCESS_TOKEN_LIFETIME || 60 * 60;
+
+const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || 'refresh-secret';
+const refreshTokenLifetime = process.env.REFRESH_TOKEN_LIFETIME || 60 * 60 * 24;
+
+export default class AuthService extends Service {
+	async generateTokens(payload: Payload): Promise<ITokens> {
+		const accessTokenId = sign(payload, accessTokenSecret, {
+			expiresIn: accessTokenLifetime + 's',
+		});
+
+		const refreshTokenId = sign(payload, refreshTokenSecret, {
+			expiresIn: refreshTokenLifetime + 's',
+		});
+
+		const {
+			userId,
+			deviceId,
+			browserId,
+			exp: accessExp,
+		} = decode(accessTokenId) as Token & { exp: number };
+		const { exp: refreshExp } = decode(refreshTokenId) as Token & { exp: number };
+
+		const accessToken = new Token({
+			id: accessTokenId,
+			userId,
+			browserId,
+			deviceId,
+			type: 'access',
+			expiresIn: accessExp || Math.round(Date.now() / 1000) + Number(accessTokenLifetime),
+		});
+
+		const refreshToken = new Token({
+			id: refreshTokenId,
+			userId,
+			browserId,
+			deviceId,
+			type: 'refresh',
+			expiresIn: refreshExp || Math.round(Date.now() / 1000) + Number(refreshTokenLifetime),
+		});
+
+		return {
+			accessToken: (await this.repositories.tokens.create(accessToken)).id,
+			refreshToken: (await this.repositories.tokens.create(refreshToken)).id,
+		};
 	}
 
-	async register(data: IUserRegister): Promise<User> {
-		const existingUserByUsername = await this.repositories.users.getUserByUsername(data.username);
-		const existingUserByEmail = await this.repositories.users.getUserByEmail(data.email);
+	async verifyToken(token: string, isTypeRefresh = false): Promise<Omit<Token, 'id'>> {
+		try {
+			const {
+				userId,
+				browserId,
+				deviceId,
+				exp: expiresIn = 0,
+			} = verify(token, isTypeRefresh ? refreshTokenSecret : accessTokenSecret) as JwtPayload &
+				Payload;
 
-		if (existingUserByUsername) {
-			throw ApiError.badRequest(
-				`User with username ${existingUserByUsername.username} already exists`,
-			);
+			await this.repositories.users.readOne(userId);
+
+			return {
+				userId,
+				browserId,
+				deviceId,
+				type: isTypeRefresh ? 'refresh' : 'access',
+				expiresIn,
+			};
+		} catch (err: unknown) {
+			if (err instanceof JsonWebTokenError) {
+				throw ApiError.unauthorized(err.message);
+			}
+
+			if (err instanceof Error) {
+				throw new ApiError(err);
+			}
+
+			throw ApiError.unexpectedError();
 		}
-
-		if (existingUserByEmail) {
-			throw ApiError.badRequest(`User with email ${existingUserByEmail.email} already exists`);
-		}
-
-		// TODO: realize token logic authentication
-
-		const user = new User(data);
-
-		await this.repositories.users.addUser(user);
-
-		return user;
 	}
 
-	async login(data: IUserLogin): Promise<User | boolean> {
+	async register({
+		userId,
+		firstName,
+		lastName,
+		browserId,
+		deviceId,
+	}: IUserRegisterRequestBody & {
+		userId: string;
+	}): Promise<IResponseData> {
+		const tokens = await this.generateTokens({ userId, browserId, deviceId });
+
+		return { firstName, lastName, ...tokens };
+	}
+
+	async login({
+		password,
+		usernameOrEmail,
+		deviceId,
+		browserId,
+	}: IUserLoginRequestBody): Promise<IResponseData> {
 		const promises = Promise.all([
-			await this.repositories.users.getUserByUsername(data.usernameOrEmail),
-			await this.repositories.users.getUserByEmail(data.usernameOrEmail),
+			this.repositories.users.readByUsername(usernameOrEmail),
+			this.repositories.users.readByEmail(usernameOrEmail),
 		]);
 
 		const existingUser = (await promises).find(Boolean);
@@ -42,12 +124,14 @@ export default class AuthService {
 			throw ApiError.badRequest('Incorrect email or password');
 		}
 
-		const isCorrectPassword = existingUser.password === data.password;
+		const isCorrectPassword = compareSync(password, existingUser.password);
 
 		if (!isCorrectPassword) {
 			throw ApiError.badRequest('Incorrect email or password');
 		}
 
-		return true;
+		const tokens = await this.generateTokens({ userId: existingUser.id, deviceId, browserId });
+
+		return { firstName: existingUser.firstName, lastName: existingUser.lastName, ...tokens };
 	}
 }

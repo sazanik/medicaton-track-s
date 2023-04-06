@@ -1,0 +1,92 @@
+### create
+POST {{baseUrl}}/users/{{userId}}/medications
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "title": "Medication {{$random.integer(1000)}}",
+  "description": "{{$random.alphabetic(100)}}",
+  "destinationCount": {{$random.integer(100)}}
+}
+
+> {%
+  client.test('Check response status', () => {
+    client.assert(response.status === 201, 'Response status is not 201');
+  })
+%}
+
+### read all by user id
+
+GET {{baseUrl}}/users/{{userId}}/medications
+Accept: application/json
+
+> {%
+  client.test('Check response status', () => {
+    client.assert(response.status === 200, 'Response status is not 200');
+  })
+
+  client.test('Check response data type', () => {
+    client.assert(Array.isArray(response.body), 'Response data is incorrect')
+  })
+
+  client.test('Check correct response data', () => {
+    if (response.body.length) {
+      const urlParts = request.url().split('/');
+      urlParts.pop();
+      const requestUserId = urlParts.pop();
+
+      client.assert(response.body[0].userId === requestUserId);
+    } else {
+      client.assert(JSON.stringify(response.body) === '[]');
+    }
+  })
+%}
+
+### read by id
+GET {{baseUrl}}/users/{{userId}}/medications/{{medicationId}}
+Accept: application/json
+
+> {%
+  client.test('Check response status', () => {
+    client.assert(response.status === 200, 'Response status is not 200');
+  })
+
+  client.test('Check correct response data', () => {
+    const id = request.url().split('/').pop();
+    client.assert(response.body.id === id)
+  })
+%}
+
+### update count
+PUT {{baseUrl}}/users/{{userId}}/medications/{{medicationId}}
+Content-Type: application/json
+
+{
+  "count": {{$random.integer(10)}}
+}
+
+> {%
+  client.test('Check response status', () => {
+    client.assert(response.status === 200, 'Response status is not 200');
+  })
+
+  client.test('Check correct response data', () => {
+    const id = request.url().split('/').pop();
+    client.assert(response.body.id === id)
+  })
+%}
+
+### delete
+DELETE {{baseUrl}}/users/{{userId}}/medications/{{medicationId}}
+Accept: application/json
+
+> {%
+  client.test('Check response status', () => {
+    client.assert(response.status === 200, 'Response status is not 200');
+  })
+
+  client.test('Check correct response data', () => {
+    const id = request.url().split('/').pop();
+    client.assert(response.body.id === id)
+  })
+%}

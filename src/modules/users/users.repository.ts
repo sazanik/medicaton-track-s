@@ -1,31 +1,31 @@
-import { DataBaseClient, Repository, User } from '@models/index';
+import { Repository, User } from '@models/index';
 
 export default class UsersRepository extends Repository<User> {
-	constructor(dbClient: DataBaseClient, entityName: string) {
-		super(dbClient, entityName);
+	async create(user: User): Promise<User> {
+		return this.createOne(user);
 	}
 
-	async addUser(user: User): Promise<void> {
-		this.addOne(user);
+	async readById(id: string): Promise<User> {
+		return this.readOne(id);
 	}
 
-	async getUserById(id: string): Promise<User> {
-		return this.getOne(id);
+	async readByEmail(email: string): Promise<User | undefined> {
+		const users = await this.readAll();
+
+		return users.find((u) => u.email === email);
 	}
 
-	async getUserByEmail(email: string): Promise<User | undefined> {
-		const users = this.getAll();
+	async readByUsername(username: string): Promise<User | undefined> {
+		const users = await this.readAll();
 
-		return users.find((user) => user.email === email);
+		return users.find((u) => u.username === username);
 	}
 
-	async getUserByUsername(username: string): Promise<User | undefined> {
-		const users = this.getAll();
-
-		return users.find((user) => user.username === username);
+	async update(user: User): Promise<void> {
+		await this.updateOne(user);
 	}
 
-	async deleteUser(id: string): Promise<void> {
-		return this.deleteOne(id);
+	async delete(id: string): Promise<void> {
+		await this.deleteOne(id);
 	}
 }

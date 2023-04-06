@@ -1,27 +1,36 @@
 import { randomUUID } from 'crypto';
 
-export interface IMedication {
-	userId: string;
-	name: string;
-	description?: string;
-	count: number;
-	destinationCount: number;
+export enum MedicationKeys {
+	id = 'id',
+	userId = 'userId',
+	title = 'title',
+	description = 'description',
+	count = 'count',
+	destinationCount = 'destinationCount',
 }
 
-export default class Medication implements IMedication {
+export interface IMedicationRequestBody {
+	[MedicationKeys.userId]: string;
+	[MedicationKeys.title]: string;
+	[MedicationKeys.description]?: string;
+	[MedicationKeys.count]: number;
+	[MedicationKeys.destinationCount]: number;
+}
+
+export default class Medication {
 	id: string;
 	userId: string;
-	name: string;
+	title: string;
 	description: string;
 	count: number;
 	destinationCount: number;
 
-	constructor({ userId, name, description, count, destinationCount }: IMedication) {
+	constructor({ userId, title, description, count, destinationCount }: IMedicationRequestBody) {
 		this.id = randomUUID();
 		this.userId = userId;
-		this.name = name;
+		this.title = title;
 		this.description = description || '';
-		this.count = count;
+		this.count = count || 0;
 		this.destinationCount = destinationCount;
 	}
 }

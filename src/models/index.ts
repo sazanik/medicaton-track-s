@@ -1,14 +1,12 @@
+export { default as ApiError, IApiError } from './ApiError';
+export { default as Token, TokenKeys } from './Token';
+export { default as Controller } from './Controller';
 export { IDataBase } from './DataBase';
 export { default as DataBaseClient, IDataBaseClient } from './DataBaseClient';
-export { default as Medication, IMedication } from './Medication';
+export { default as EntitiesRepository, IEntitiesRepository } from './EntitiesRepository';
+export { default as Medication, IMedicationRequestBody, MedicationKeys } from './Medication';
 export { IRepositories } from './Repositories';
+export { default as Repository } from './Repository';
+export { default as Service } from './Service';
 export { IServices } from './Services';
-export { default as User, IUserRegister, IUserLogin } from './User';
-export {
-	Controller,
-	Repository,
-	ApiError,
-	IApiError,
-	EntitiesRepository,
-	IEntitiesRepository,
-} from '@shared/classes';
+export { default as User, IUserRegisterRequestBody, IUserLoginRequestBody, UserKeys } from './User';

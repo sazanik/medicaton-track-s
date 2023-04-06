@@ -1,19 +1,36 @@
 import { randomUUID } from 'crypto';
 
-export interface IUserLogin {
-	usernameOrEmail: string;
-	password: string;
+export enum UserKeys {
+	id = 'id',
+	email = 'email',
+	username = 'username',
+	usernameOrEmail = 'usernameOrEmail',
+	password = 'password',
+	firstName = 'firstName',
+	lastName = 'lastName',
+	authorization = 'authorization',
+	deviceId = 'deviceId',
+	browserId = 'browserId',
 }
 
-export interface IUserRegister {
-	firstName: string;
-	lastName: string;
-	username: string;
-	email: string;
-	password: string;
+export interface IUserLoginRequestBody {
+	[UserKeys.usernameOrEmail]: string;
+	[UserKeys.password]: string;
+	[UserKeys.deviceId]: string;
+	[UserKeys.browserId]: string;
 }
 
-export default class User implements IUserRegister {
+export interface IUserRegisterRequestBody {
+	[UserKeys.firstName]: string;
+	[UserKeys.lastName]: string;
+	[UserKeys.username]: string;
+	[UserKeys.email]: string;
+	[UserKeys.password]: string;
+	[UserKeys.deviceId]: string;
+	[UserKeys.browserId]: string;
+}
+
+export default class User {
 	id: string;
 	firstName: string;
 	lastName: string;
@@ -22,7 +39,7 @@ export default class User implements IUserRegister {
 	password: string;
 	medicationsIds: string[];
 
-	constructor({ firstName, lastName, username, email, password }: IUserRegister) {
+	constructor({ firstName, lastName, username, email, password }: IUserRegisterRequestBody) {
 		this.id = randomUUID();
 		this.firstName = firstName;
 		this.lastName = lastName;
