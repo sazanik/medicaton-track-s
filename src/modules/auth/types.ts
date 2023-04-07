@@ -1,15 +1,15 @@
 import { Token } from '@models/index';
 
-export interface ITokens {
-	accessToken: string;
-	refreshToken: string;
+export interface ITokensIds {
+	accessTokenId: string;
+	refreshTokenId: string;
 }
 
-export interface IResponseData extends ITokens {
+export interface IResponseData extends ITokensIds {
 	firstName: string;
 	lastName: string;
-	accessToken: string;
-	refreshToken: string;
+	accessTokenId: string;
+	refreshTokenId: string;
 }
 
 export type Payload = Pick<Token, 'userId' | 'browserId' | 'deviceId'>;

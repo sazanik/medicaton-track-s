@@ -10,6 +10,7 @@ interface IRepository<T> {
 	updateOne: (item: T) => Promise<T | void>;
 	updateAll: (items: T[]) => Promise<void>;
 	deleteOne: (id: string) => Promise<void>;
+	deleteColl: (ids: string[]) => Promise<void>;
 	readAll: () => Promise<T[]>;
 }
 
@@ -50,5 +51,9 @@ export default class Repository<T extends DefaultItem> implements IRepository<T>
 
 	async deleteOne(id: string): Promise<void> {
 		await this.entitiesRepository.deleteItem(this.entityName, id);
+	}
+
+	async deleteColl(ids: string[]): Promise<void> {
+		await this.entitiesRepository.deleteItems(this.entityName, ids);
 	}
 }

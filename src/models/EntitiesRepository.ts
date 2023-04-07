@@ -11,6 +11,7 @@ export interface IEntitiesRepository<T> {
 	readEntity: (name: string) => Promise<EntityData<T>>;
 	updateItem: (name: string, id: string, item: T) => Promise<T>;
 	deleteItem: (name: string, id: string) => Promise<void>;
+	deleteItems: (name: string, ids: string[]) => Promise<void>;
 	deleteEntity: (name: string) => Promise<void>;
 	getAllEntitiesNames: () => Promise<string[]>;
 }
@@ -67,6 +68,17 @@ export default class EntitiesRepository<T extends Item> implements IEntitiesRepo
 		const entityData = data[name] as EntityData<T>;
 
 		delete entityData[id];
+		await this.dbClient.setData(data);
+	}
+
+	async deleteItems(name: string, ids: string[]): Promise<void> {
+		const data = await this.dbClient.getData();
+		const entityData = data[name] as EntityData<T>;
+
+		ids.forEach((id) => {
+			delete entityData[id];
+		});
+
 		await this.dbClient.setData(data);
 	}
 

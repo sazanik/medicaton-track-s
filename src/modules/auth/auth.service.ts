@@ -9,7 +9,7 @@ import {
 	Service,
 	Token,
 } from '@models/index';
-import { IResponseData, ITokens, Payload } from './types';
+import { IResponseData, ITokensIds, Payload } from './types';
 
 dotenv.config();
 
@@ -20,7 +20,7 @@ const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || 'refresh-secret';
 const refreshTokenLifetime = process.env.REFRESH_TOKEN_LIFETIME || 60 * 60 * 24;
 
 export default class AuthService extends Service {
-	async generateTokens(payload: Payload): Promise<ITokens> {
+	async generateTokens(payload: Payload): Promise<ITokensIds> {
 		const accessTokenId = sign(payload, accessTokenSecret, {
 			expiresIn: accessTokenLifetime + 's',
 		});
@@ -56,19 +56,19 @@ export default class AuthService extends Service {
 		});
 
 		return {
-			accessToken: (await this.repositories.tokens.create(accessToken)).id,
-			refreshToken: (await this.repositories.tokens.create(refreshToken)).id,
+			accessTokenId: (await this.repositories.tokens.create(accessToken)).id,
+			refreshTokenId: (await this.repositories.tokens.create(refreshToken)).id,
 		};
 	}
 
-	async verifyToken(token: string, isTypeRefresh = false): Promise<Omit<Token, 'id'>> {
+	async verifyTokenAndGetData(tokenId: string, isTypeRefresh = false): Promise<Omit<Token, 'id'>> {
 		try {
 			const {
 				userId,
 				browserId,
 				deviceId,
 				exp: expiresIn = 0,
-			} = verify(token, isTypeRefresh ? refreshTokenSecret : accessTokenSecret) as JwtPayload &
+			} = verify(tokenId, isTypeRefresh ? refreshTokenSecret : accessTokenSecret) as JwtPayload &
 				Payload;
 
 			await this.repositories.users.readOne(userId);
@@ -102,9 +102,9 @@ export default class AuthService extends Service {
 	}: IUserRegisterRequestBody & {
 		userId: string;
 	}): Promise<IResponseData> {
-		const tokens = await this.generateTokens({ userId, browserId, deviceId });
+		const tokensIds = await this.generateTokens({ userId, browserId, deviceId });
 
-		return { firstName, lastName, ...tokens };
+		return { firstName, lastName, ...tokensIds };
 	}
 
 	async login({
@@ -133,5 +133,20 @@ export default class AuthService extends Service {
 		const tokens = await this.generateTokens({ userId: existingUser.id, deviceId, browserId });
 
 		return { firstName: existingUser.firstName, lastName: existingUser.lastName, ...tokens };
+	}
+
+	async logout(tokenId: string): Promise<void> {
+		const token = await this.repositories.tokens.readOne(tokenId);
+
+		if (!token) {
+			throw ApiError.unauthorized('Token not found');
+		}
+
+		const tokens = await this.repositories.tokens.readCollByUserId(token.userId);
+		const invalidTokensIds = tokens
+			.filter((t) => t.browserId === token.browserId && t.deviceId === token.deviceId)
+			.map((t) => t.id);
+
+		await this.repositories.tokens.deleteColl(invalidTokensIds);
 	}
 }

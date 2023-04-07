@@ -16,7 +16,11 @@ export default class TokensRepository extends Repository<Token> {
 		return this.readOne(id);
 	}
 
+	async readCollByUserId(userId: string): Promise<Token[]> {
+		return (await this.readAll()).filter((token) => token.userId === userId);
+	}
+
 	async delete(id: string): Promise<void> {
-		await this.readOne(id);
+		await this.deleteOne(id);
 	}
 }

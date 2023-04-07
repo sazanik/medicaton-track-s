@@ -17,6 +17,7 @@ export default class AuthController extends Controller {
 
 		this.register = this.register.bind(this);
 		this.login = this.login.bind(this);
+		this.logout = this.logout.bind(this);
 		this.refreshToken = this.refreshToken.bind(this);
 		this.verifyAccessTokenMiddleware = this.verifyAccessTokenMiddleware.bind(this);
 
@@ -40,6 +41,12 @@ export default class AuthController extends Controller {
 		);
 
 		this.router.get(
+			'/logout',
+			getValidators(getUsersValidatorsObject(header), UserKeys.authorization),
+			this.logout,
+		);
+
+		this.router.get(
 			'/refresh-token',
 			getValidators(getUsersValidatorsObject(header), UserKeys.authorization),
 			this.refreshToken,
@@ -54,17 +61,17 @@ export default class AuthController extends Controller {
 	async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const errors = validationResult(req);
-			const token = req.headers.authorization?.split(' ').pop();
+			const tokenId = req.headers.authorization?.split(' ').pop();
 
-			if (!token || !errors.isEmpty()) {
+			if (!tokenId || !errors.isEmpty()) {
 				next(ApiError.unauthorized('Token is invalid, authenticate again'));
 				return;
 			}
 
-			const tokenPayload = await this.services.auth.verifyToken(token, true);
-			const tokens = await this.services.auth.generateTokens(tokenPayload);
+			const tokenData = await this.services.auth.verifyTokenAndGetData(tokenId, true);
+			const tokensIds = await this.services.auth.generateTokens(tokenData);
 
-			res.status(200).json(tokens);
+			res.status(200).json(tokensIds);
 		} catch (err) {
 			next(err);
 		}
@@ -113,6 +120,25 @@ export default class AuthController extends Controller {
 		}
 	}
 
+	async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
+		try {
+			const errors = validationResult(req);
+			const tokenId = req.headers.authorization?.split(' ').pop();
+
+			if (!tokenId || !errors.isEmpty()) {
+				next(ApiError.unauthorized('Token is invalid'));
+				return;
+			}
+
+			await this.services.auth.verifyTokenAndGetData(tokenId);
+			await this.services.auth.logout(tokenId);
+
+			res.status(200).send('You are logged out');
+		} catch (err) {
+			next(err);
+		}
+	}
+
 	async verifyAccessTokenMiddleware(
 		req: Request,
 		res: Response,
@@ -120,14 +146,14 @@ export default class AuthController extends Controller {
 	): Promise<void> {
 		try {
 			const errors = validationResult(req);
-			const token = req.headers.authorization?.split(' ').pop();
+			const tokenId = req.headers.authorization?.split(' ').pop();
 
-			if (!token || !errors.isEmpty()) {
+			if (!tokenId || !errors.isEmpty()) {
 				next(ApiError.unauthorized('Token is invalid, authenticate again'));
 				return;
 			}
 
-			await this.services.auth.verifyToken(token);
+			await this.services.auth.verifyTokenAndGetData(tokenId);
 
 			next();
 		} catch (err) {
