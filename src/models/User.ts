@@ -8,9 +8,14 @@ export enum UserKeys {
 	password = 'password',
 	firstName = 'firstName',
 	lastName = 'lastName',
+	medicationsIds = 'medicationsIds',
 	authorization = 'authorization',
 	deviceId = 'deviceId',
 	browserId = 'browserId',
+	createdAt = 'createdAt',
+	updatedAt = 'updatedAt',
+	createdBy = 'createdBy',
+	updatedBy = 'updatedBy',
 }
 
 export interface IUserLoginRequestBody {
@@ -31,13 +36,17 @@ export interface IUserRegisterRequestBody {
 }
 
 export default class User {
-	id: string;
-	firstName: string;
-	lastName: string;
-	username: string;
-	email: string;
-	password: string;
-	medicationsIds: string[];
+	[UserKeys.id]: string;
+	[UserKeys.firstName]: string;
+	[UserKeys.lastName]: string;
+	[UserKeys.username]: string;
+	[UserKeys.email]: string;
+	[UserKeys.password]: string;
+	[UserKeys.medicationsIds]: string[];
+	[UserKeys.createdBy]: null;
+	[UserKeys.updatedBy]: null;
+	[UserKeys.createdAt]: number;
+	[UserKeys.updatedAt]: number;
 
 	constructor({ firstName, lastName, username, email, password }: IUserRegisterRequestBody) {
 		this.id = randomUUID();
@@ -47,5 +56,9 @@ export default class User {
 		this.email = email;
 		this.password = password;
 		this.medicationsIds = [];
+		this.createdBy = null;
+		this.updatedBy = null;
+		this.createdAt = Date.now();
+		this.updatedAt = Date.now();
 	}
 }

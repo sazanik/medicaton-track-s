@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response, Router } from 'express';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 
+import { launchDb } from './db/config';
 import { DataBaseClient, IApiError, IRepositories, IServices } from '@models/index';
 import {
 	AuthController,
@@ -16,6 +17,7 @@ import {
 } from '@modules/index';
 
 dotenv.config();
+launchDb().then(() => console.log('Database is started'));
 
 const app = express();
 const port = process.env.PORT;

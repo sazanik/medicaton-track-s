@@ -1,5 +1,4 @@
 ### register
-
 POST {{baseUrl}}/register
 Content-Type: application/json
 
