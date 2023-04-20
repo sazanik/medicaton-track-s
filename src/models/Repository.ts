@@ -1,59 +1,83 @@
-import { EntitiesRepository, IDataBaseClient, IEntitiesRepository } from '@models/index';
+import { Pool } from 'pg';
 
-interface DefaultItem {
-	id: string;
-}
+import { DbAdapter } from '@models/index';
 
 interface IRepository<T> {
-	createOne: (item: T) => Promise<T>;
-	readOne: (id: string) => Promise<T>;
-	updateOne: (item: T) => Promise<T | void>;
-	updateAll: (items: T[]) => Promise<void>;
-	deleteOne: (id: string) => Promise<void>;
-	deleteColl: (ids: string[]) => Promise<void>;
-	readAll: () => Promise<T[]>;
+	create(param: T | T[]): Promise<T | T[]>;
+
+	read(param?: string | string[]): Promise<T | T[]>;
+
+	update(param: T | T[]): Promise<T | T[]>;
+
+	delete(param: string | string[]): Promise<void>;
 }
 
-export default class Repository<T extends DefaultItem> implements IRepository<T> {
-	private dbClient: IDataBaseClient;
-	private readonly entityName: string;
-	private entitiesRepository: IEntitiesRepository<T>;
+export default class Repository<T extends {}> implements IRepository<T> {
+	private dbAdapter: DbAdapter<T>;
+	private tableName: string;
+	private columnsNames: string[];
 
-	constructor(dbClient: IDataBaseClient, entityName: string) {
-		this.dbClient = dbClient;
-		this.entityName = entityName;
-		this.entitiesRepository = new EntitiesRepository<T>(dbClient);
+	constructor(db: Pool, tableName: string, columnsNames: string[]) {
+		this.dbAdapter = new DbAdapter<T>(db);
+		this.tableName = tableName;
+		this.columnsNames = columnsNames;
 	}
 
-	async createOne(item: T): Promise<T> {
-		return this.entitiesRepository.updateItem(this.entityName, item.id, item);
+	transformToEntry(obj: T): void {
+		const keysStr = '';
+		const valuesStr = '';
+
+		Object.entries(obj).forEach((prop) => {
+			const [key, value] = prop;
+		});
 	}
 
-	async readOne(id: string): Promise<T> {
-		const entity = await this.entitiesRepository.readEntity(this.entityName);
+	create(item: T): Promise<T>;
+	create(items: T[]): Promise<T | T[]>;
+	async create(param: Parameters<IRepository<T>['create']>[0]): ReturnType<IRepository<T>['read']> {
+		if (Array.isArray(param)) {
+			return [] as T[];
+		}
 
-		return entity[id];
+		return this.dbAdapter.createEntry(
+			this.tableName,
+			Object.keys(param).join(', '),
+			Object.values(param),
+		);
 	}
 
-	async readAll(): Promise<T[]> {
-		const items = await this.entitiesRepository.readEntity(this.entityName);
+	read(): Promise<T[]>;
+	read(id: string): Promise<T>;
+	read(ids: string[]): Promise<T[]>;
+	async read(param?: Parameters<IRepository<T>['read']>[0]): ReturnType<IRepository<T>['read']> {
+		if (Array.isArray(param)) {
+			return [] as T[];
+		}
 
-		return Object.values(items);
+		if (param === undefined) {
+			return [] as T[];
+		}
+
+		return {} as T;
 	}
 
-	async updateOne(item: T): Promise<T> {
-		return this.entitiesRepository.updateItem(this.entityName, item.id, item);
+	update(item: T): Promise<T>;
+	update(items: T[]): Promise<T[]>;
+	async update(
+		param: Parameters<IRepository<T>['update']>[0],
+	): ReturnType<IRepository<T>['update']> {
+		if (Array.isArray(param)) {
+			return [] as T[];
+		}
+
+		return {} as T;
 	}
 
-	async updateAll(items: T[]): Promise<void> {
-		return this.entitiesRepository.createEntity(this.entityName, items);
-	}
-
-	async deleteOne(id: string): Promise<void> {
-		await this.entitiesRepository.deleteItem(this.entityName, id);
-	}
-
-	async deleteColl(ids: string[]): Promise<void> {
-		await this.entitiesRepository.deleteItems(this.entityName, ids);
+	delete(id: string): Promise<void>;
+	delete(ids: string[]): Promise<void>;
+	async delete(
+		param?: Parameters<IRepository<T>['delete']>[0],
+	): ReturnType<IRepository<T>['delete']> {
+		console.log(param);
 	}
 }

@@ -71,7 +71,7 @@ export default class AuthService extends Service {
 			} = verify(tokenId, isTypeRefresh ? refreshTokenSecret : accessTokenSecret) as JwtPayload &
 				Payload;
 
-			await this.repositories.users.readOne(userId);
+			await this.repositories.users.read(userId);
 
 			return {
 				userId,
@@ -136,7 +136,7 @@ export default class AuthService extends Service {
 	}
 
 	async logout(tokenId: string): Promise<void> {
-		const token = await this.repositories.tokens.readOne(tokenId);
+		const token = await this.repositories.tokens.read(tokenId);
 
 		if (!token) {
 			throw ApiError.unauthorized('Token not found');
@@ -147,6 +147,6 @@ export default class AuthService extends Service {
 			.filter((t) => t.browserId === token.browserId && t.deviceId === token.deviceId)
 			.map((t) => t.id);
 
-		await this.repositories.tokens.deleteColl(invalidTokensIds);
+		await this.repositories.tokens.delete(invalidTokensIds);
 	}
 }

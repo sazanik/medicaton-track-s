@@ -5,10 +5,10 @@ create table if not exists user_account
     lastName  varchar(50),
     username  varchar(50),
     email     varchar(50),
-    password  varchar(50),
+    password  varchar(300),
     createdAt bigint not null,
     updatedAt bigint not null,
-    createdBy varchar(50),
-    updatedBy varchar(50),
-    version   int
+    createdBy uuid,
+    updatedBy uuid,
+    version   varchar(10)
 )

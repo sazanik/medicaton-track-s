@@ -91,7 +91,11 @@ export default class AuthController extends Controller {
 			}
 
 			const user = await this.services.users.create(req.body);
+			console.log(1, user);
+
 			const data = await this.services.auth.register({ ...req.body, userId: user.id });
+
+			console.log(2, data);
 
 			res.status(201).json(data);
 		} catch (err) {

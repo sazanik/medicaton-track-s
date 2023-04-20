@@ -1,5 +1,7 @@
 import { randomUUID } from 'crypto';
 
+const version = process.env.npm_package_version;
+
 export enum UserKeys {
 	id = 'id',
 	email = 'email',
@@ -16,6 +18,7 @@ export enum UserKeys {
 	updatedAt = 'updatedAt',
 	createdBy = 'createdBy',
 	updatedBy = 'updatedBy',
+	version = 'version',
 }
 
 export interface IUserLoginRequestBody {
@@ -42,23 +45,25 @@ export default class User {
 	[UserKeys.username]: string;
 	[UserKeys.email]: string;
 	[UserKeys.password]: string;
-	[UserKeys.medicationsIds]: string[];
-	[UserKeys.createdBy]: null;
-	[UserKeys.updatedBy]: null;
+	[UserKeys.createdBy]: string;
+	[UserKeys.updatedBy]: string;
 	[UserKeys.createdAt]: number;
 	[UserKeys.updatedAt]: number;
+	[UserKeys.version]: string;
 
 	constructor({ firstName, lastName, username, email, password }: IUserRegisterRequestBody) {
-		this.id = randomUUID();
+		const id = randomUUID();
+
+		this.id = id;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.username = username;
 		this.email = email;
 		this.password = password;
-		this.medicationsIds = [];
-		this.createdBy = null;
-		this.updatedBy = null;
+		this.createdBy = id;
+		this.updatedBy = id;
 		this.createdAt = Date.now();
 		this.updatedAt = Date.now();
+		this.version = version || '1.0.0';
 	}
 }

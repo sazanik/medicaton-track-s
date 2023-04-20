@@ -9,6 +9,6 @@ create table if not exists medication
     updatedAt        bigint not null,
     createdBy        varchar(50),
     updatedBy        varchar(50),
-    version          int,
+    version          varchar(10),
     userId           uuid references user_account (id)
 )

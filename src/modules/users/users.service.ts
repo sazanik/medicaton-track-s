@@ -24,16 +24,16 @@ export default class UsersService extends Service {
 	}
 
 	async readAll(): Promise<User[]> {
-		return this.repositories.users.readAll();
+		return this.repositories.users.read();
 	}
 
 	async delete(id: string): Promise<void> {
-		const existingUser = await this.repositories.users.readById(id);
+		const existingUser = await this.repositories.users.read(id);
 
 		if (!existingUser) {
 			throw ApiError.notFound('Incorrect request params');
 		}
 
-		await this.repositories.users.deleteOne(id);
+		await this.repositories.users.delete(id);
 	}
 }

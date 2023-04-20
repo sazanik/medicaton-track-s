@@ -2,8 +2,7 @@ import express, { NextFunction, Request, Response, Router } from 'express';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 
-import { launchDb } from './db/config';
-import { DataBaseClient, IApiError, IRepositories, IServices } from '@models/index';
+import { IApiError, IRepositories, IServices, UserKeys } from '@models/index';
 import {
 	AuthController,
 	AuthService,
@@ -15,13 +14,15 @@ import {
 	UsersRepository,
 	UsersService,
 } from '@modules/index';
+import { Pool } from 'pg';
+
+import { dbConfig } from './db';
 
 dotenv.config();
-launchDb().then(() => console.log('Database is started'));
 
 const app = express();
 const port = process.env.PORT;
-const dbClient = new DataBaseClient({ users: {}, medications: {}, tokens: {} });
+const db = new Pool(dbConfig);
 
 app.listen(port, () => {
 	console.log(`App started on port ${port}`);
@@ -31,9 +32,20 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 const repositories: IRepositories = {
-	users: new UsersRepository(dbClient, 'users'),
-	medications: new MedicationsRepository(dbClient, 'medications'),
-	tokens: new TokensRepository(dbClient, 'tokens'),
+	users: new UsersRepository(db, 'user_account', [
+		UserKeys.id,
+		UserKeys.firstName,
+		UserKeys.lastName,
+		UserKeys.username,
+		UserKeys.password,
+		UserKeys.createdBy,
+		UserKeys.updatedBy,
+		UserKeys.createdAt,
+		UserKeys.updatedAt,
+		UserKeys.version,
+	]),
+	medications: new MedicationsRepository(db, 'medications', ['id']),
+	tokens: new TokensRepository(db, 'tokens', ['id']),
 };
 
 const services: IServices = {

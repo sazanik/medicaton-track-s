@@ -4,7 +4,7 @@ export default class MedicationsService extends Service {
 	async create(data: IMedicationRequestBody): Promise<void> {
 		const existingMedication = await this.repositories.medications.readByName(data.title);
 
-		const existingUser = await this.repositories.users.readById(data.userId);
+		const existingUser = await this.repositories.users.read(data.userId);
 
 		// TODO: find out the correct naming of the error
 		if (!existingUser) {
@@ -18,7 +18,6 @@ export default class MedicationsService extends Service {
 		const medication = new Medication(data);
 		const updatedUser = {
 			...existingUser,
-			medicationsIds: [...existingUser.medicationsIds, medication.id],
 		};
 
 		await this.repositories.users.update(updatedUser);
@@ -27,8 +26,8 @@ export default class MedicationsService extends Service {
 
 	async read(userId: string, medicationId: string): Promise<Medication> {
 		const [user, medication] = await Promise.all([
-			this.repositories.users.readById(userId),
-			this.repositories.medications.readById(medicationId),
+			this.repositories.users.read(userId),
+			this.repositories.medications.read(medicationId),
 		]);
 
 		if (!(user && medication) || userId !== user.id || medicationId !== medication.id) {
@@ -43,7 +42,7 @@ export default class MedicationsService extends Service {
 	}
 
 	async update(id: string, medicationData: IMedicationRequestBody): Promise<Medication> {
-		const existingMedication = await this.repositories.medications.readById(id);
+		const existingMedication = await this.repositories.medications.read(id);
 
 		if (!existingMedication) {
 			throw ApiError.notFound(`Medication not found, check requests params`);
@@ -54,8 +53,8 @@ export default class MedicationsService extends Service {
 
 	async delete(userId: string, medicationId: string): Promise<void> {
 		const [user, medication] = await Promise.all([
-			this.repositories.users.readById(userId),
-			this.repositories.medications.readById(medicationId),
+			this.repositories.users.read(userId),
+			this.repositories.medications.read(medicationId),
 		]);
 
 		if (!(user && medication) || userId !== user.id || medicationId !== medication.id) {
@@ -63,9 +62,5 @@ export default class MedicationsService extends Service {
 		}
 
 		await this.repositories.medications.delete(medicationId);
-		await this.repositories.users.update({
-			...user,
-			medicationsIds: user.medicationsIds.filter((id) => id !== medicationId),
-		});
 	}
 }
