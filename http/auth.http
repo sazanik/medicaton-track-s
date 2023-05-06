@@ -1,4 +1,10 @@
 ### register
+
+< {%
+  request.variables.set('test', '12345')
+  client.log(request.variables.get('test'))
+%}
+
 POST {{baseUrl}}/register
 Content-Type: application/json
 
