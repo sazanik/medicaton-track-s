@@ -1,4 +1,4 @@
-create table if not exists medication
+create table if not exists medications
 (
     id               uuid primary key,
     title            varchar(50),

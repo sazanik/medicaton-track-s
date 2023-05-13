@@ -1,4 +1,4 @@
-import { Token } from '@models/index';
+import { Token, TokenKeys } from '@models/index';
 
 export interface ITokensIds {
 	accessTokenId: string;
@@ -12,4 +12,4 @@ export interface IResponseData extends ITokensIds {
 	refreshTokenId: string;
 }
 
-export type Payload = Pick<Token, 'userId' | 'browserId' | 'deviceId'>;
+export type Payload = Pick<Token, TokenKeys.userId | TokenKeys.browserId | TokenKeys.deviceId>;

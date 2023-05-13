@@ -8,6 +8,7 @@ import {
 	IUserRegisterRequestBody,
 	Service,
 	Token,
+	TokenKeys,
 } from '@models/index';
 import { IResponseData, ITokensIds, Payload } from './types';
 
@@ -61,7 +62,10 @@ export default class AuthService extends Service {
 		};
 	}
 
-	async verifyTokenAndGetData(tokenId: string, isTypeRefresh = false): Promise<Omit<Token, 'id'>> {
+	async verifyTokenAndGetData(
+		tokenId: string,
+		isTypeRefresh = false,
+	): Promise<Payload & Pick<Token, TokenKeys.type | TokenKeys.expiresIn>> {
 		try {
 			const {
 				userId,

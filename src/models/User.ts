@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 
-const version = process.env.npm_package_version;
+const version = process.env.npm_package_version  || '1.0.0';
 
 export enum UserKeys {
 	id = 'id',
@@ -64,6 +64,6 @@ export default class User {
 		this.updatedBy = id;
 		this.createdAt = Date.now();
 		this.updatedAt = Date.now();
-		this.version = version || '1.0.0';
+		this.version = version;
 	}
 }

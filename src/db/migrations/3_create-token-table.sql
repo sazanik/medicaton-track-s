@@ -1,8 +1,8 @@
-create table if not exists token
+create table if not exists tokens
 (
-    id        uuid primary key,
+    id        varchar(300) primary key,
     type      varchar(10),
-    expressIn bigint not null,
+    expiresIn bigint not null,
     deviceId  varchar(50),
     browserId varchar(50),
     createdAt bigint not null,
